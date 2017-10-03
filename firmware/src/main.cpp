@@ -11,11 +11,21 @@ elapsedMicros debounceTimer;
 elapsedMicros lastRead;
 elapsedMillis pauseTimer;
 
+// Load Cell
+#include "HX711.h"
+#define LC_DAT 14
+#define LC_CLK 15
+HX711 scale(LC_DAT, LC_CLK);
+float calibration_factor = 73.0; //-7050 worked for my 440lb max scale setup
+
 // Encoder
 #include <Encoder.h>
 Encoder enc1(5, 6);
+
+// Loop initializations
 void enc_loop();
 void motor_loop();
+void lc_loop();
 
 // Motor Control
 // This is the library for the TB6612 that contains the class Motor and all the
@@ -59,6 +69,13 @@ void setup() {
     Serial.begin(9600);
     delay(1000);
 
+    // Load Cell
+    scale.set_scale();
+    scale.tare(); //Reset the scale to 0
+    long zero_factor = scale.read_average(); //Get a baseline reading
+    Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
+    Serial.println(zero_factor);
+
     motor1.brake();
     motor2.brake();
 
@@ -73,8 +90,9 @@ void setup() {
 long pos1  = -999;
 
 void loop() {
-    enc_loop();
-    motor_loop();
+    //enc_loop();
+    //motor_loop();
+    lc_loop();
 
     // if a character is sent from the serial monitor,
     // reset both back to zero.
@@ -128,4 +146,24 @@ void motor_loop(){
     Input = (double) pos1;
     posPID.Compute();
     motor1.drive((int) Output);
+}
+
+void lc_loop(){
+    scale.set_scale(calibration_factor); //Adjust to this calibration factor
+
+    Serial.print("Reading: ");
+    Serial.print(scale.get_units(), 1);
+    Serial.print(" g"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
+    Serial.print(" calibration_factor: ");
+    Serial.print(calibration_factor);
+    Serial.println();
+
+    if(Serial.available())
+    {
+        char temp = Serial.read();
+        if(temp == '+' || temp == 'a')
+            calibration_factor += 1;
+        else if(temp == '-' || temp == 'z')
+            calibration_factor -= 1;
+    }
 }
