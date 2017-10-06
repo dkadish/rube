@@ -25,7 +25,7 @@ Encoder enc1(5, 6);
 // Loop initializations
 void enc_loop();
 void motor_loop();
-void lc_loop();
+void lc_calibration_loop();
 
 // Motor Control
 // This is the library for the TB6612 that contains the class Motor and all the
@@ -92,7 +92,7 @@ long pos1  = -999;
 void loop() {
     //enc_loop();
     //motor_loop();
-    lc_loop();
+    lc_calibration_loop();
 
     // if a character is sent from the serial monitor,
     // reset both back to zero.
@@ -148,7 +148,7 @@ void motor_loop(){
     motor1.drive((int) Output);
 }
 
-void lc_loop(){
+void lc_calibration_loop(){
     scale.set_scale(calibration_factor); //Adjust to this calibration factor
 
     Serial.print("Reading: ");
