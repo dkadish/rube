@@ -24,7 +24,15 @@ float calibration_factor = 73.0; //-7050 worked for my 440lb max scale setup
 
 // Encoder
 #include <Encoder.h>
-Encoder enc1(5, 6);
+#ifdef  __MK66FX1M0__
+#define ENC1A 23
+#define ENC1B 22
+#endif
+#ifdef __MK20DX256__
+#define ENC1A 5
+#define ENC1B 6
+#endif
+Encoder enc1(ENC1A, ENC1B);
 
 // Loop initializations
 void enc_loop();
@@ -86,12 +94,11 @@ double Kp=10.0, Ki=1.0, Kd=0.0;
 PID posPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE);
 
 void setup() {
-    Serial.begin(9600);
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
+
+    Serial.begin(9600);
 
     delay(2000);
 
