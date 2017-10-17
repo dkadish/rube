@@ -36,16 +36,32 @@ void lc_calibration_loop();
 // functions
 #include <SparkFun_TB6612.h>
 
-#define M1_STBY	11 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
-// Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
-#define M1_AIN1 8
-#define M1_BIN1 10
-//Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
-#define M1_AIN2 7
-#define M1_BIN2 9
-//PWM input for channels A/B	Input	PWM input that controls the speed
-#define M1_PWMA 3
-#define M1_PWMB 4
+#ifdef __MK66FX1M0__
+    // Pin settings for teensy 3.2 on solderless breadboard
+    #define M1_STBY	10 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
+    // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
+    #define M1_AIN1 9
+    #define M1_BIN1 11
+    //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
+    #define M1_AIN2 8
+    #define M1_BIN2 12
+    //PWM input for channels A/B	Input	PWM input that controls the speed
+    #define M1_PWMA 3
+    #define M1_PWMB 4
+#endif
+#ifdef __MK20DX256__
+    // Pin settings for teensy 3.2 on solderless breadboard
+    #define M1_STBY	11 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
+    // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
+    #define M1_AIN1 8
+    #define M1_BIN1 10
+    //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
+    #define M1_AIN2 7
+    #define M1_BIN2 9
+    //PWM input for channels A/B	Input	PWM input that controls the speed
+    #define M1_PWMA 3
+    #define M1_PWMB 4
+#endif
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
@@ -71,14 +87,24 @@ PID posPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, REVERSE);
 
 void setup() {
     Serial.begin(9600);
+
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    delay(2000);
+
+    Serial.printf("Pins\nAIn2: %i\nAIn1: %i\nSTBY: %i\nBIn1: %i\nBIn2: %i\n", M1_AIN2, M1_AIN1, M1_STBY, M1_BIN1, M1_BIN2);
+
     delay(1000);
 
     // Load Cell
-    scale.set_scale();
+    /*scale.set_scale();
     scale.tare(); //Reset the scale to 0
     long zero_factor = scale.read_average(); //Get a baseline reading
     Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
-    Serial.println(zero_factor);
+    Serial.println(zero_factor);*/
 
     motor1.brake();
     motor2.brake();
@@ -94,19 +120,20 @@ void setup() {
 long pos1  = -999;
 
 void loop() {
-    //enc_loop();
-    //motor_loop();
-    lc_calibration_loop();
+
+    enc_loop();
+    motor_loop();
+    //lc_calibration_loop();
 
     // if a character is sent from the serial monitor,
     // reset both back to zero.
-    /*if (Serial.available()) {
+    if (Serial.available()) {
         int newSetpt = Serial.parseInt();
         Serial.printf("New Setpoint %i", newSetpt);
         Serial.println();
         Setpoint = (double) newSetpt;
         Serial.read();
-    }*/
+    }
 
     if( pos1 <= 1 && dirUp ){ // Hit the top, switch direction
         pauseTimer = 0;
