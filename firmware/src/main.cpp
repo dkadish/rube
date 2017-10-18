@@ -14,6 +14,7 @@ Metro printTimer = Metro(500);
 elapsedMicros debounceTimer1, debounceTimer2, debounceTimer3;
 elapsedMicros lastRead1, lastRead2, lastRead3;
 elapsedMillis pauseTimer;
+elapsedMillis requestTimer;
 
 // Load Cell
 #include "HX711.h"
@@ -61,7 +62,7 @@ void lc_calibration_loop();
 #include <SparkFun_TB6612.h>
 
 #ifdef __MK66FX1M0__
-    // Pin settings for teensy 3.2 on solderless breadboard
+    // Pin settings for teensy 3.6 on stripboard
 
     //********************** MOTOR DRIVER 1 **********************//
     #define M1_STBY	10 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
@@ -117,9 +118,9 @@ void lc_calibration_loop();
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
-const int offset1A = 1;
-const int offset1B = 1;
-const int offset2A = 1;
+const int offset1A = -1;
+const int offset1B = -1;
+const int offset2A = -1;
 //const int offset2B = 1;
 
 // Initializing motors.  The library will allow you to initialize as many
@@ -153,6 +154,7 @@ void setup() {
     Serial.begin(9600);
 
     delay(2000);
+    Serial1.begin(115200);
 
     Serial.printf("Pins\nAIn2: %i\nAIn1: %i\nSTBY: %i\nBIn1: %i\nBIn2: %i\n", M1_AIN2, M1_AIN1, M1_STBY, M1_BIN1, M1_BIN2);
 
@@ -169,9 +171,9 @@ void setup() {
     motor1B.brake();
     motor2A.brake();
 
-    Setpoint1 = 500.0;
-    Setpoint2 = 500.0;
-    Setpoint3 = 500.0;
+    Setpoint1 = enc1.read();
+    Setpoint2 = enc2.read();
+    Setpoint3 = enc3.read();
     dirUp = false;
     posPID1.SetMode(AUTOMATIC);
     posPID1.SetOutputLimits(-255, 255);
@@ -187,25 +189,89 @@ long pos1  = -999;
 long pos2  = -999;
 long pos3  = -999;
 
+String WifiRequest = "";
+
+void wifiResponse(char* response)
+{
+    Serial1.printf("B%s\n", response);
+}
+
+bool firstStop = true;
+
 void loop() {
 
     enc_loop();
-    motor_loop();
+    if( requestTimer > 1000 ){
+        motor1A.brake();
+        motor1B.brake();
+        motor2A.brake();
+
+        if(firstStop) {
+            Serial.printf("STOPPED BY TIME: %i, %i, %i.\n", enc1.read(), enc2.read(), enc3.read());
+            firstStop = false;
+        }
+    } else {
+        motor_loop();
+        firstStop = true;
+    }
+
     //lc_calibration_loop();
 
     // if a character is sent from the serial monitor,
     // reset both back to zero.
-    if (Serial.available()) {
-        int newSetpt = Serial.parseInt();
-        Serial.printf("New Setpoint %i", newSetpt);
-        Serial.println();
+    /*if (Serial.available()) {
+        int newSetpt = Serial1.parseInt();
+        //Serial.printf("New Setpoint %i", newSetpt);
+        //Serial.println();
         Setpoint1 = (double) newSetpt;
         Setpoint2 = (double) newSetpt;
         Setpoint3 = (double) newSetpt;
-        Serial.read();
+        Serial1.read();
+    }*/
+    while (Serial1.available())
+    {
+        char character = Serial1.read();
+        if (character != '\n')
+            WifiRequest.concat(character);
+        else
+        {
+            if (WifiRequest[0] == 'G'){
+                int newSetPt = WifiRequest.substring(1).toInt();
+
+                Setpoint1 = (float)newSetPt;
+                Setpoint2 = (float)newSetPt;
+                Setpoint3 = (float)newSetPt;
+            }
+            else if (WifiRequest[0] == 'S'){
+                motor1A.brake();
+                motor1B.brake();
+                motor2A.brake();
+
+                Setpoint1 = (float)enc1.read();
+                Setpoint2 = (float)enc2.read();
+                Setpoint3 = (float)enc3.read();
+            }
+            else if (WifiRequest == "ON")
+            {
+                wifiResponse("Stuff turned on");
+                digitalWrite(LED_BUILTIN, HIGH);
+            }
+            else if (WifiRequest == "OFF")
+            {
+                wifiResponse("Stuff turned off");
+                digitalWrite(LED_BUILTIN, LOW);
+            }
+            else
+            {
+                wifiResponse("Unknown command");
+            }
+
+            WifiRequest = "";
+        }
+        requestTimer = 0;
     }
 
-    if( (pos1 <= 1 || pos2 <= 1 || pos3 <= 1) && dirUp ){ // Hit the top, switch direction
+    /*if( (pos1 <= 1 || pos2 <= 1 || pos3 <= 1) && dirUp ){ // Hit the top, switch direction
         pauseTimer = 0;
         while (pauseTimer < 10000L){
             enc_loop();
@@ -221,11 +287,11 @@ void loop() {
             enc_loop();
             motor_loop();
         }
-        Setpoint1 = 0.0;
-        Setpoint2 = 0.0;
-        Setpoint3 = 0.0;
+        Setpoint1 = 20.0;
+        Setpoint2 = 20.0;
+        Setpoint3 = 20.0;
         dirUp = true;
-    }
+    }*/
 }
 
 void enc_loop() {
