@@ -92,6 +92,7 @@ void setup(){
     }*/
 
     motorTimer = 0;
+    enc1.write(0);
 }
 
 
@@ -155,13 +156,21 @@ void loop(){
     }
 
     if(goTimer > duration){
+        if(go){
+            wifiResponse("Done");
+        }
         go = false;
 
         motor1A.brake();
         motor1B.brake();
         motor2A.brake();
-    } else {
+
+    } else if (motor < 3){
         motors[motor].drive(speed);
+    } else {
+        for( int i=0; i < 3; i++ ){
+            motors[i].drive(speed);
+        }
     }
 
     /*if( motorTimer > 500){

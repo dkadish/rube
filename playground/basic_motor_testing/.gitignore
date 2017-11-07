@@ -65,4 +65,4 @@ fabric.properties
 # *.ipr
 
 # Sonarlint plugin
-.idea/sonarlint 
+.idea/sonarlint
