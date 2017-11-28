@@ -3,6 +3,8 @@
  * Created by David Kadish on 2017-07-05.
  *
  *
+ *
+ * TODO: Wire load cell circuit into place.
 
 ******************************************************************************/
 
@@ -15,13 +17,14 @@ elapsedMicros debounceTimer1, debounceTimer2, debounceTimer3;
 elapsedMicros lastRead1, lastRead2, lastRead3;
 elapsedMillis pauseTimer;
 elapsedMillis requestTimer;
+elapsedMillis motorPrintTimer;
 
 // Load Cell
 #include "HX711.h"
 #define LC_DAT 14
 #define LC_CLK 15
 HX711 scale(LC_DAT, LC_CLK);
-float calibration_factor = 73.0; //-7050 worked for my 440lb max scale setup
+float calibration_factor = -7050.0; //-7050 worked for my 440lb max scale setup
 
 // Encoder
 #include <Encoder.h>
@@ -61,6 +64,8 @@ void lc_calibration_loop();
 // functions
 #include <SparkFun_TB6612.h>
 
+#define MOTOR_UPPER_LIMIT 75
+#define MOTOR_LOWER_LIMIT -255
 #ifdef __MK66FX1M0__
     // Pin settings for teensy 3.6 on stripboard
 
@@ -139,12 +144,40 @@ double Setpoint1, Input1, Output1,
         Setpoint2, Input2, Output2,
         Setpoint3, Input3, Output3;
 bool dirUp; // Is the motor travelling up
+int NextPoint1, NextPoint2, NextPoint3;
 
 //Specify the links and initial tuning parameters
-double Kp=4.0, Ki=0.05, Kd=0.1;
-PID posPID1(&Input1, &Output1, &Setpoint1, Kp, Ki, Kd, REVERSE);
-PID posPID2(&Input2, &Output2, &Setpoint2, Kp, Ki, Kd, REVERSE);
-PID posPID3(&Input3, &Output3, &Setpoint3, Kp, Ki, Kd, REVERSE);
+double Kp=0.5, Ki=0.1, Kd=0.075; //, Ki=0.05, Kd=0.1;
+PID posPID1(&Input1, &Output1, &Setpoint1, Kp, Ki, Kd, DIRECT);
+PID posPID2(&Input2, &Output2, &Setpoint2, Kp, Ki, Kd, DIRECT);
+PID posPID3(&Input3, &Output3, &Setpoint3, Kp, Ki, Kd, DIRECT);
+
+void motor_setup(){
+    motor1A.brake();
+    motor1B.brake();
+    motor2A.brake();
+
+    // Move up to start position
+    /*motor1A.drive(-175);
+    motor1B.drive(-175);
+    motor2A.drive(-175);
+    delay(1000);
+
+    motor1A.brake();
+    motor1B.brake();
+    motor2A.brake();*/
+}
+
+void scale_setup(){
+    Serial.printf("Setting up scale.");
+    // Load Cell
+    scale.set_scale();
+    scale.tare(); //Reset the scale to 0
+    long zero_factor = scale.read_average(); //Get a baseline reading
+    Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
+    Serial.println(zero_factor);
+    scale.set_scale(calibration_factor); //Adjust to this calibration factor
+}
 
 void setup() {
 
@@ -154,33 +187,27 @@ void setup() {
     Serial.begin(9600);
 
     delay(2000);
-    Serial1.begin(115200);
+    //Serial1.begin(115200);
 
     Serial.printf("Pins\nAIn2: %i\nAIn1: %i\nSTBY: %i\nBIn1: %i\nBIn2: %i\n", M1_AIN2, M1_AIN1, M1_STBY, M1_BIN1, M1_BIN2);
 
     delay(1000);
 
-    // Load Cell
-    /*scale.set_scale();
-    scale.tare(); //Reset the scale to 0
-    long zero_factor = scale.read_average(); //Get a baseline reading
-    Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
-    Serial.println(zero_factor);*/
+    scale_setup();
 
-    motor1A.brake();
-    motor1B.brake();
-    motor2A.brake();
+    motor_setup();
 
-    Setpoint1 = enc1.read();
-    Setpoint2 = enc2.read();
-    Setpoint3 = enc3.read();
+    // Reset the encoders
+    enc1.write(0);
+    enc2.write(0);
+    enc3.write(0);
     dirUp = false;
     posPID1.SetMode(AUTOMATIC);
-    posPID1.SetOutputLimits(-255, 255);
+    posPID1.SetOutputLimits(MOTOR_LOWER_LIMIT, MOTOR_UPPER_LIMIT);
     posPID2.SetMode(AUTOMATIC);
-    posPID2.SetOutputLimits(-255, 255);
+    posPID2.SetOutputLimits(MOTOR_LOWER_LIMIT, MOTOR_UPPER_LIMIT);
     posPID3.SetMode(AUTOMATIC);
-    posPID3.SetOutputLimits(-255, 255);
+    posPID3.SetOutputLimits(MOTOR_LOWER_LIMIT, MOTOR_UPPER_LIMIT);
 
     printTimer.reset();
 }
@@ -193,7 +220,7 @@ String WifiRequest = "";
 
 void wifiResponse(char* response)
 {
-    Serial1.printf("B%s\n", response);
+    Serial.printf("B%s\n", response);
 }
 
 bool firstStop = true;
@@ -201,36 +228,16 @@ bool firstStop = true;
 void loop() {
 
     enc_loop();
-    if( requestTimer > 1000 ){
-        motor1A.brake();
-        motor1B.brake();
-        motor2A.brake();
 
-        if(firstStop) {
-            Serial.printf("STOPPED BY TIME: %i, %i, %i.\n", enc1.read(), enc2.read(), enc3.read());
-            firstStop = false;
-        }
-    } else {
-        motor_loop();
-        firstStop = true;
-    }
+    motor_loop();
+
+    //scale_loop();
 
     //lc_calibration_loop();
 
-    // if a character is sent from the serial monitor,
-    // reset both back to zero.
-    /*if (Serial.available()) {
-        int newSetpt = Serial1.parseInt();
-        //Serial.printf("New Setpoint %i", newSetpt);
-        //Serial.println();
-        Setpoint1 = (double) newSetpt;
-        Setpoint2 = (double) newSetpt;
-        Setpoint3 = (double) newSetpt;
-        Serial1.read();
-    }*/
-    while (Serial1.available())
+    while (Serial.available())
     {
-        char character = Serial1.read();
+        char character = Serial.read();
         if (character != '\n')
             WifiRequest.concat(character);
         else
@@ -250,6 +257,23 @@ void loop() {
                 Setpoint1 = (float)enc1.read();
                 Setpoint2 = (float)enc2.read();
                 Setpoint3 = (float)enc3.read();
+            }
+            else if (WifiRequest[0] == 'A'){
+                int newSetPt = WifiRequest.substring(1).toInt();
+                NextPoint1 = newSetPt;
+            }
+            else if (WifiRequest[0] == 'B'){
+                int newSetPt = WifiRequest.substring(1).toInt();
+                NextPoint2 = newSetPt;
+            }
+            else if (WifiRequest[0] == 'C'){
+                int newSetPt = WifiRequest.substring(1).toInt();
+                NextPoint3 = newSetPt;
+            }
+            else if (WifiRequest[0] == 'H'){
+                Setpoint1 = (float)NextPoint1;
+                Setpoint2 = (float)NextPoint2;
+                Setpoint3 = (float)NextPoint3;
             }
             else if (WifiRequest == "ON")
             {
@@ -271,81 +295,12 @@ void loop() {
         requestTimer = 0;
     }
 
-    /*if( (pos1 <= 1 || pos2 <= 1 || pos3 <= 1) && dirUp ){ // Hit the top, switch direction
-        pauseTimer = 0;
-        while (pauseTimer < 10000L){
-            enc_loop();
-            motor_loop();
-        }
-        Setpoint1 = 500.0;
-        Setpoint2 = 500.0;
-        Setpoint3 = 500.0;
-        dirUp = false;
-    } else if ( (pos1 >= 499 || pos2 >= 499 || pos3 >= 499) && !dirUp ){
-        pauseTimer = 0;
-        while (pauseTimer < 10000L){
-            enc_loop();
-            motor_loop();
-        }
-        Setpoint1 = 20.0;
-        Setpoint2 = 20.0;
-        Setpoint3 = 20.0;
-        dirUp = true;
-    }*/
 }
 
 void enc_loop() {
-    if( debounceTimer1 > 250 ){
-        debounceTimer1 = 0;
-        long newPos1;
-        newPos1 = enc1.read();
-        if (newPos1 != pos1) {
-            Serial.print(1);
-            Serial.print(": ");
-            Serial.print(newPos1);
-            Serial.print(",");
-            Serial.print(newPos1-pos1);
-            Serial.print(",");
-            Serial.print(1000.0*((float)newPos1-pos1)/((float)lastRead1));
-            Serial.println();
-            pos1 = newPos1;
-            lastRead1 = 0;
-        }
-    }
-    if( debounceTimer2 > 250 ){
-        debounceTimer2 = 0;
-        long newPos2;
-        newPos2 = enc2.read();
-        if (newPos2 != pos2) {
-            Serial.print(2);
-            Serial.print(": ");
-            Serial.print(newPos2);
-            Serial.print(",");
-            Serial.print(newPos2-pos2);
-            Serial.print(",");
-            Serial.print(1000.0*((float)newPos2-pos2)/((float)lastRead2));
-            Serial.println();
-            pos2 = newPos2;
-            lastRead2 = 0;
-        }
-    }
-    if( debounceTimer3 > 250 ){
-        debounceTimer3 = 0;
-        long newPos3;
-        newPos3 = enc3.read();
-        if (newPos3 != pos3) {
-            Serial.print(3);
-            Serial.print(": ");
-            Serial.print(newPos3);
-            Serial.print(",");
-            Serial.print(newPos3-pos3);
-            Serial.print(",");
-            Serial.print(1000.0*((float)newPos3-pos3)/((float)lastRead3));
-            Serial.println();
-            pos3 = newPos3;
-            lastRead3 = 0;
-        }
-    }
+    pos1 = enc1.read();
+    pos2 = enc2.read();
+    pos3 = enc3.read();
 }
 
 void motor_loop(){
@@ -361,6 +316,15 @@ void motor_loop(){
     Input3 = (double) pos3;
     posPID3.Compute();
     motor2A.drive((int) Output3);
+
+    if(motorPrintTimer > 1000){
+        Serial.printf("Motor signals: %i (%i/%i), %i (%i/%i), %i (%i/%i)\n",
+                      (int)Output1, pos1, (int)Setpoint1,
+                      (int)Output2, pos2, (int)Setpoint2,
+                      (int)Output3, pos3, (int)Setpoint3);
+        motorPrintTimer=0;
+        Serial.printf("Scale readings: %i, %i, %i", 0, scale.get_units(), 0);
+    }
 }
 
 void lc_calibration_loop(){
