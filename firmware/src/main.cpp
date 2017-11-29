@@ -5,6 +5,9 @@
  *
  *
  * TODO: Wire load cell circuit into place.
+ *
+ * Nov 28: Created a velocity measurement from encoder.
+ * TODO: Use for doing cascaded PID control. Position outside velocity loop.
 
 ******************************************************************************/
 
@@ -53,6 +56,9 @@ float calibration_factor = -7050.0; //-7050 worked for my 440lb max scale setup
 Encoder enc1(ENC1A, ENC1B);
 Encoder enc2(ENC2A, ENC2B);
 Encoder enc3(ENC3A, ENC3B);
+float v1, v2, v3;
+elapsedMicros encTimer;
+#define VELOCITY_SCALE_FACTOR 1000.0
 
 // Loop initializations
 void enc_loop();
@@ -168,7 +174,7 @@ void motor_setup(){
     motor2A.brake();*/
 }
 
-void scale_setup(){
+/*void scale_setup(){
     Serial.printf("Setting up scale.");
     // Load Cell
     scale.set_scale();
@@ -177,6 +183,21 @@ void scale_setup(){
     Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
     Serial.println(zero_factor);
     scale.set_scale(calibration_factor); //Adjust to this calibration factor
+}*/
+
+void encoder_setup(){
+
+    // Reset the encoders
+    enc1.write(0);
+    enc2.write(0);
+    enc3.write(0);
+
+    // Set velocities to 0
+    v1 = 0.0;
+    v2 = 0.0;
+    v3 = 0.0;
+
+    encTimer = 0;
 }
 
 void setup() {
@@ -193,14 +214,12 @@ void setup() {
 
     delay(1000);
 
-    scale_setup();
+    //scale_setup();
 
     motor_setup();
 
-    // Reset the encoders
-    enc1.write(0);
-    enc2.write(0);
-    enc3.write(0);
+    encoder_setup();
+
     dirUp = false;
     posPID1.SetMode(AUTOMATIC);
     posPID1.SetOutputLimits(MOTOR_LOWER_LIMIT, MOTOR_UPPER_LIMIT);
@@ -298,9 +317,35 @@ void loop() {
 }
 
 void enc_loop() {
+    long micros = encTimer;
+
+    long op1 = pos1;
+    long op2 = pos2;
+    long op3 = pos3;
+
     pos1 = enc1.read();
     pos2 = enc2.read();
     pos3 = enc3.read();
+
+    if( micros > 50 ) {
+        v1 = VELOCITY_SCALE_FACTOR*((double) (pos1 - op1)) / ((double) micros);
+        v2 = VELOCITY_SCALE_FACTOR*((double) (pos2 - op2)) / ((double) micros);
+        v3 = VELOCITY_SCALE_FACTOR*((double) (pos3 - op3)) / ((double) micros);
+
+        /*if (op1 != pos1) {
+            Serial.print(pos1);
+            Serial.print(" ");
+            Serial.print(op1);
+            Serial.print(" ");
+            Serial.print(micros);
+            Serial.print(" ");
+            Serial.print(v1);
+            Serial.println(" ");
+        }*/
+
+        encTimer = 0;
+    }
+
 }
 
 void motor_loop(){
@@ -323,7 +368,9 @@ void motor_loop(){
                       (int)Output2, pos2, (int)Setpoint2,
                       (int)Output3, pos3, (int)Setpoint3);
         motorPrintTimer=0;
-        Serial.printf("Scale readings: %i, %i, %i", 0, scale.get_units(), 0);
+        Serial.printf("Motor velocity: %i, %i, %i\n", (int)v1, (int)v2, (int)v3);
+        Serial.printf("Motor velocity: %i, %i, %i\n", (int)v1, (int)v2, (int)v3);
+        //Serial.printf("Scale readings: %i, %i, %i", 0, scale.get_units(), 0);
     }
 }
 
