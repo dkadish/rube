@@ -8,6 +8,14 @@
  *
  * Nov 28: Created a velocity measurement from encoder.
  * TODO: Use for doing cascaded PID control. Position outside velocity loop.
+ *
+ * Dec 17
+ * TODO: - Finish assembling board
+ *       - Reprogram PINDEFs
+ *       - Add winches B and C
+ *       - Calibrate PID control
+ *       - Store variables to SD card
+ *       - Real-time clock?
 
 ******************************************************************************/
 
@@ -17,6 +25,7 @@
 
 // Load Cell
 #include "HX711.h"
+#include "SDLogger.h"
 
 #define LC_DAT 14
 #define LC_CLK 15
@@ -36,6 +45,10 @@ Winch A(0, ENC1A, ENC1B,
 int NextPoint1;
 
 
+// SD Card
+String logLoop();
+SDLogger logger = SDLogger(logLoop);
+
 void setup() {
 
     pinMode(LED_BUILTIN, OUTPUT);
@@ -45,6 +58,13 @@ void setup() {
 
     delay(2000);
     //Serial1.begin(115200);
+
+    // SD Card
+    if(logger.setup()){
+        Serial.printf("STATUS: SD Card initialised.\n");
+    } else {
+        Serial.printf("STATUS: SD initialization failed.\n");
+    }
 
     Serial.printf("Pins\nAIn2: %i\nAIn1: %i\nSTBY: %i\nBIn1: %i\nBIn2: %i\n", M1_AIN2, M1_AIN1, M1_STBY, M1_BIN1, M1_BIN2);
 
@@ -131,7 +151,7 @@ void serial_loop(){
                 A.speed.SetTunings(A.speed.GetKp(), ki_float, 0.0);
             }
             else if (WifiRequest[0] == 'K'){
-                Serial.printf("Kp: %i.%i, Kv: %i.%i, Ki: %i.%i\n",
+                Serial.printf("Param > Kp: %i.%i, Kv: %i.%i, Ki: %i.%i\n",
                     (int)A.position.GetKp(), ((int)(A.position.GetKp()*100.0))%100,
                     (int)A.speed.GetKp(), ((int)(A.speed.GetKp()*100.0))%100,
                     (int)A.speed.GetKi(), ((int)(A.speed.GetKi()*100.0))%100
@@ -155,6 +175,12 @@ void serial_loop(){
             WifiRequest = "";
         }
     }
+
+    logger.loop();
+}
+
+String logLoop(){
+    return "Hello World!";
 }
 
 void lc_calibration_loop(){

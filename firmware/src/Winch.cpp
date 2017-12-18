@@ -68,12 +68,13 @@ void Winch::motor_loop() {
     motor.drive((int) spd_out);
 
     if(printTimer > 1000){
-        Serial.printf("Motor signals: OUT (CURR/SET) Position: %i (%i/%i), Speed: %i (%i/%i)\n",
+        Serial.printf("PID > Position: %i (%i/%i), Speed: %i (%i/%i)\n",
                       (int)(pos_out*100.0), (int)(enc_pos*100.0), (int)(pos_setpt*100.0),
                       (int)spd_out, (int)(spd_est*100.0), (int)(pos_out*100.0));
         /*Serial.printf("Estimation: Pos: %i, PosErr: %i, SpdInt: %i, Spd: %i\n",
                       (int)(pos_est*100.0), (int)((enc_pos-pos_est)*100.0), (int)(spd_int*100.0), (int)(spd_est*100.0)
         );*/
+        Serial.printf("Position > x: %i\n", (int)(enc_pos*100));
         printTimer=0;
     }
 }
@@ -106,7 +107,7 @@ void Winch::enc_loop() {
     spd_est = pos_est_err * spd_tracking_kp + spd_int;
 
     if(printTimer > 1000){
-        Serial.printf("Estimation: Pos: %i, PosErr: %i, SpdInt: %i, Spd: %i, encTimer: %i, pos_est_error: %i\n",
+        Serial.printf("Estimation > Pos: %i, PosErr: %i, SpdInt: %i, Spd: %i, encTimer: %i, pos_est_error: %i\n",
                       (int)(pos_est*100.0), (int)((enc_pos-pos_est)*100.0), (int)(spd_int*100.0),
                       (int)(spd_est*100.0), (int)encTimer, (int)(pos_est_err*100)
         );

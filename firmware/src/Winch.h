@@ -11,7 +11,7 @@
 #include <SparkFun_TB6612.h>
 #include <PID_v1.h>
 
-#ifdef __MK66FX1M0__ // Teensy 3.6 (Robot)
+#if defined(__MK66FX1M0__) || defined(__MK64FX512__)
 #define MOTOR_UPPER_LIMIT 75
 #define MOTOR_LOWER_LIMIT -255
 
