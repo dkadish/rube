@@ -31,11 +31,14 @@
 
 // Used to calculate velocity from encoder motion and microseconds
 #define VELOCITY_SCALE_FACTOR 100000.0
-#define TICKS_PER_REVOLUTION 24.0 // TODO is this right
+#define TICKS_PER_REVOLUTION 1024.0 // TODO is this right
 #endif
 
 #define POSITION 0
 #define SPEED 1
+#define SIGNAL 2
+#define STOP 0
+#define GO 1
 
 class Winch {
 
@@ -55,6 +58,7 @@ public:
 
     // Encoder
     Encoder enc;
+    int encA, encB;
     double enc_pos; // Encoder position, in revolutions. 1 rev = 1.0.
     //float last_pos;
     double enc_speed; // Encoder speed in revolutions/sec.
@@ -71,6 +75,9 @@ public:
     double pos_Kp, spd_Kp, spd_Ki;
 
     int control_mode = POSITION;
+    int stop_go = STOP;
+
+    int signal = 0;
 
     //Specify the links and initial tuning parameters
     PID position;//(&pos_in, &pos_out, &pos_setpt, 0.0, 0.0, 0.0, DIRECT);
@@ -87,6 +94,9 @@ public:
     void loop();
 
     double current_position();
+    void go_signal(int signal);
+    void stop();
+    void go();
 
 private:
     // Setup functions

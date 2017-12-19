@@ -5,14 +5,16 @@
 // TODO: Motion planning based on ETA using estimated velocity.
 
 #include "Winch.h"
+#include "wifi.h"
 
 Winch::Winch(int index, int encA, int encB,
              int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
              double positionKp, double speedKp, double speedKi
-    ): index(index), enc(encA, encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
+    ): index(index), enc(encA,encB), encA(encA), encB(encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
        pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
        position(&pos_in, &pos_out, &pos_setpt, positionKp, 0.0, 0.0, DIRECT),
-       speed(&spd_in, &spd_out, &pos_out, speedKp, speedKi, 0.0, DIRECT)
+       speed(&spd_in, &spd_out, &pos_out, speedKp, speedKi, 0.0, DIRECT),
+       stop_go(STOP)
 {
 
 }
@@ -23,6 +25,8 @@ void Winch::motor_setup() {
 }
 
 void Winch::enc_setup() {
+    //enc = Encoder(encA, encB);
+
     enc.write(0);
 
     enc_pos = 0;
@@ -47,13 +51,37 @@ void Winch::pid_setup() {
 void Winch::setup(){
 
     //scale_setup();
-
+    char resp[100];
+    sprintf(resp, "Winch %i Setting up motor.", index);
+    wifiResponse(resp);
     motor_setup();
 
+    sprintf(resp, "Winch %i Setting up encoder.", index);
+    wifiResponse(resp);
     enc_setup();
 
+    sprintf(resp, "Winch %i Setting up pid.", index);
+    wifiResponse(resp);
     pid_setup();
 
+}
+
+void Winch::go(){
+    stop_go = GO;
+}
+
+void Winch::go_signal(int s) {
+    control_mode = SIGNAL;
+    stop_go = GO;
+    signal = s;
+}
+
+void Winch::stop(){ // remove integral windup here
+    stop_go = STOP;
+
+    control_mode = POSITION;
+    motor.brake();
+    pos_setpt = current_position();
 }
 
 void Winch::motor_loop() {
@@ -63,11 +91,18 @@ void Winch::motor_loop() {
         position.Compute();
     }
 
-    spd_in = spd_est;
-    speed.Compute();
-    motor.drive((int) spd_out);
+    if (stop_go == STOP) { // Something about integral windup here.
+        motor.brake();
+    } else if( control_mode == POSITION || control_mode == SPEED ) {
+        spd_in = spd_est;
+        speed.Compute();
+        motor.drive((int) spd_out);
+    } else if (control_mode == SIGNAL) {
+        motor.drive(signal);
+    }
 
     if(printTimer > 1000){
+        Serial.printf("Encoder Reading: %i", enc.read());
         Serial.printf("PID > Position: %i (%i/%i), Speed: %i (%i/%i)\n",
                       (int)(pos_out*100.0), (int)(enc_pos*100.0), (int)(pos_setpt*100.0),
                       (int)spd_out, (int)(spd_est*100.0), (int)(pos_out*100.0));
@@ -118,7 +153,6 @@ void Winch::enc_loop() {
 }
 
 void Winch::pid_loop() {
-
 }
 
 void Winch::comm_loop() {

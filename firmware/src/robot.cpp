@@ -5,15 +5,43 @@
 #include "robot.h"
 #include "math.h"
 
-void Robot::CalibrateInitialPosition() {
+
+RobotPosition::RobotPosition():mount_height(0) {
+
+    lineLengths = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}; // Initialize as array { 1.0, 2.4, ... }
+    lineLengthSetpoints = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+
+    // Location of Q in XYZ
+    Q = {1.0, 1.0, 1.0};//, O, P;
+
+    // Setpoint in XYZ
+    setpoint = {0.0, 0.0, 0.0};
+
+    // RobotPosition position in XYZ
+    R = {0.0, 0.0, 0.0};
+}
+
+void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
+
+    // Set parameters from calibration settings
+    mount_height = params.height;
+    lineLengths.OP = params.OP;
+    lineLengths.PQ = params.PQ;
+    lineLengths.OQ = params.OQ;
+    lineLengths.OR = params.OR;
+    lineLengths.PR = params.PR;
+    lineLengths.QR = params.QR;
+
     //first finding the XY position of point Q
     float r1=lineLengths.OQ;
     float r2=lineLengths.PQ;
     float d=lineLengths.OP;
 
+    // Calculate the position of Q
     Q.x = ((d*d)-(r2*r2)+(r1*r1))/(2*d);
     Q.y = ((1/d) * sqrt((-d+r2-r1)*(-d-r2+r1)*(-d+r2+r1)*(d+r2+r1)))/2;
     Q.z = mount_height;
+
     //now finding the pointR based on the three other lineLengths OPQ and the distances from these to pointR
     r1=lineLengths.OR;
     r2=lineLengths.PR;
@@ -28,7 +56,7 @@ void Robot::CalibrateInitialPosition() {
     R.z=mount_height-R.z;
 }
 
-void Robot::CalculateLineOPQ(int x, int y, int z){
+void RobotPosition::CalculateLineOPQ(int x, int y, int z){
     setpoint.x=x;
     setpoint.y=y;
     setpoint.z=z;

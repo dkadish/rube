@@ -5,11 +5,23 @@
 #ifndef FIRMWARE_ROBOT_H
 #define FIRMWARE_ROBOT_H
 
+struct RobotSetupParameters {
+    float height;
+
+    float OP;
+    float PQ;
+    float OQ;
+
+    float OR; // Origin to robot
+    float PR;
+    float QR;
+};
+
 struct TetrahedronLengths {
     // Mount point distances
     float OP; // Origin to first point
     float PQ; // First point to second point
-    float OQ; // Origin to second point
+    float OQ; // Origin to second pointw
 
     // Line lengths
     float OR; // Origin to robot
@@ -23,7 +35,10 @@ struct Point3D {
     float z;
 };
 
-class Robot {
+class RobotPosition {
+
+public:
+    RobotPosition();
 
     float mount_height; // The height (in metres) that the mount lineLengths are at.
 
@@ -31,15 +46,15 @@ class Robot {
     TetrahedronLengths lineLengthSetpoints;
 
     // Location of Q in XYZ
-    Point3D Q;
+    Point3D Q;//, O, P;
 
     // Setpoint in XYZ
     Point3D setpoint;
 
-    // Robot position in XYZ
+    // RobotPosition position in XYZ
     Point3D R;
 
-    void CalibrateInitialPosition();
+    void CalibrateInitialPosition(RobotSetupParameters params);
     void CalculateLineOPQ(int x, int y, int z);
 };
 
