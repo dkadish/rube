@@ -4,7 +4,7 @@
 
 #include "SDLogger.h"
 
-SDLogger::SDLogger(String (*logFunction)()) : logFunction(logFunction), enabled(false), writeCounter(0) {
+SDLogger::SDLogger(String (*logFunction)()) : logFunction(logFunction), enabled(false), writeTimer(0), fileTimer(0), writeInterval(100) {
 
     csPin = BUILTIN_SDCARD;
 /*#ifdef BUILTIN_SDCARD
@@ -20,7 +20,7 @@ void SDLogger::setChipSelect(int cs) {
 
 bool SDLogger::setup() {
     if(SD.begin(csPin)) {
-        file = SD.open("datalog.csv", FILE_WRITE);
+        file = SD.open("datalog.txt", FILE_WRITE);
         enabled = true;
 
         return true;
@@ -30,15 +30,31 @@ bool SDLogger::setup() {
 }
 
 void SDLogger::loop() {
-    if (enabled) {
-        //file.open("datalog.csv", FILE_WRITE);
-        file.println(logFunction());
-        //file.close();
-        //writeCounter++;
-    }
+    if (enabled && writeTimer > writeInterval) {
 
-    /*if( writeCounter > 10 ){
-        file.flush();
-        writeCounter = 0;
-    }*/
+        // open the file. note that only one file can be open at a time,
+        // so you have to close this one before opening another.
+        if(!file){
+            file = SD.open("datalog.txt", FILE_WRITE);
+            //Serial.println("Opening File");
+        }
+
+        // if the file is available, write to it:
+        if (file) {
+            file.println(logFunction());
+            if(fileTimer > 1000){
+                //Serial.println("Closing File");
+                file.close();
+                fileTimer = 0;
+            }
+            // print to the serial port too:
+            Serial.println(logFunction());
+        }
+            // if the file isn't open, pop up an error:
+        else {
+            //Serial.println("error opening datalog.txt");
+        }
+
+        writeTimer = 0;
+    }
 }

@@ -55,7 +55,7 @@ public:
     Point3D R;
 
     void CalibrateInitialPosition(RobotSetupParameters params);
-    void CalculateLineOPQ(int x, int y, int z);
+    void CalculateLineOPQ(float x, float y, float z);
 };
 
 

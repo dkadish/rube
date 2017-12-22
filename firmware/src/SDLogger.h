@@ -26,7 +26,9 @@ private:
 
     int csPin;
 
-    int writeCounter;
+    int writeInterval;
+
+    elapsedMillis writeTimer, fileTimer;
 
     String (*logFunction)();
 

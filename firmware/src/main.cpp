@@ -16,10 +16,21 @@
  *       - Calibrate PID control
  *       - Store variables to SD card
  *       - Real-time clock?
+ *
+ * Dec 19
+ * TODO: - Implement changes in setpoints
+ *       - Print Robot Position
+ *       - Connect OPQ-R Setpoints with the winch code
+ *
+ * Dec 20
+ *      - Missing from PID: Jump to overcome friction
+ *      - Reset encoders function
+ *      - Ramp speed
 
 ******************************************************************************/
 
 #include "pindefs.h"
+#include "default_params.h"
 #include "wifi.h"
 
 #include "Winch.h"
@@ -40,24 +51,68 @@ void lc_calibration_loop();
 void serial_loop();
 
 int offset1A = -1;
-int offset1B = -1;
-int offset2A = -1;
+int offset1B = 1;
+int offset2A = 1;
+
+// Droplet Servo motor
+#include <Servo.h>
+Servo dropperServo;  // create servo object to control a servo
+
+// Path planning
+struct Path {
+    // Mount point distances
+    Point3D waypoint;
+    Point3D destination;
+};
+
+Point3D funnel = {-71.68, -7.46, 26.88};
+Point3D funnelAway = {-75.0, -10.0, 26.93};
+Point3D funnelApproach = {-70.0, -15.0, 25.0};
+Point3D funnelDildoMid = {-50.0, -40.0, 26.0};
+Point3D dildo = {-10.0, -65.0, 15.0};
+Point3D tentacles = {15.0, -60.0, 5.0};
+Point3D tentaclesSandMid = {-45.0, -30.0, -30.0};
+Point3D sand = {40.0, 20.0, -55.0};
+
+Path ool_projector = {
+        funnelApproach,
+        funnel
+};
+
+Path projector_dildo = {
+        funnelAway,
+        dildo
+};
+
+Path dildo_sand = {
+        tentaclesSandMid,
+        sand
+};
+
+Path paths[] = {ool_projector, };
 
 RobotPosition robot_pos = RobotPosition();
-RobotSetupParameters robot_pos_params = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+RobotSetupParameters robot_pos_params = {H_D, OP_D, PQ_D, OQ_D, OR_D, PR_D, QR_D};
 Winch A(0, ENC1A, ENC1B,
-        M1_AIN1, M1_AIN2, M1_PWMA, offset1A, M1_STBY,
-        0.0, 0.0, 0.0);
-Winch B(1, ENC2A, ENC2B,
         M1_BIN1, M1_BIN2, M1_PWMB, offset1B, M1_STBY,
-        0.0, 0.0, 0.0);
-Winch C(2, ENC3A, ENC3B,
+        W0_KP_D, W0_KV_D, W0_KI_D);
+Winch B(1, ENC2A, ENC2B,
         M2_AIN1, M2_AIN2, M2_PWMA, offset2A, M2_STBY,
-        0.0, 0.0, 0.0);
+        W1_KP_D, W1_KV_D, W1_KI_D);
+Winch C(2, ENC3A, ENC3B,
+        M1_AIN1, M1_AIN2, M1_PWMA, offset1A, M1_STBY,
+        W2_KP_D, W2_KV_D, W2_KI_D);
 
 Winch winches[] = {A, B, C};
 
 int NextPoint1;
+
+int NO_PATH = 0;
+int PATH_TO_WAYPOINT = 1;
+int PATH_TO_DESTINATION = 2;
+int PATH_AT_DESTINATION = 3;
+int opMode = NO_PATH;
+int path_i = 0;
 
 #define BRIGHT_LED 7
 
@@ -71,21 +126,33 @@ String SerialRequest = "";
 // Function templates
 void handleSerialInput(String serial_in8);
 
+void waypoint_loop();
+void to_destination_loop();
+void at_destination_loop();
+
 void doOnLED();
 void doOffLED();
-void doBrightPWM(int pwm);
+void doBrightOnOff(int onoff);
 
 void doStop();
 void doGo();
 void doSetMode(char mode);
 void doSetXYZ(String xyz_string);
+void doSetEncoderSetpoint(String opqr_string);
 void doSetVelocity(String xyz_string);
 void doDisplayRobotPositioning();
 void doSetRobotPosParams(String param_string);
 void doDisplayRobotParams();
+void doDisplayRobotXYZ();
+void doGoHome();
+void doFollowPath(int path_i);
+void doDroplet(int direction);
+void setHome();
 
 void doWinchStop(int winch_i);
 void doSetWinchSignal(int winch_i, int signal);
+void doSetWinchPositionSetpoint(int winch_i, float setpoint);
+void doDisplayWinchState(int winch_i);
 
 void doSetKp(float k, int winch_i);
 void doSetKi(float k, int winch_i);
@@ -124,12 +191,22 @@ void setup() {
     digitalWrite(BRIGHT_LED, HIGH);
     delay(200);
     digitalWrite(BRIGHT_LED, LOW);
+
+    dropperServo.attach(6);
 }
 
 void loop() {
 
     for(int i=0; i < N_WINCHES; i++){
         winches[i].loop();
+    }
+
+    if( opMode == PATH_TO_WAYPOINT ){
+        waypoint_loop();
+    } else if ( opMode == PATH_TO_DESTINATION ){
+        to_destination_loop();
+    } else if ( opMode == PATH_AT_DESTINATION ){
+        at_destination_loop();
     }
 
     serial_loop();
@@ -146,14 +223,21 @@ void loop() {
  *  S > Stop
  *  G > Go
  *  M > Mode (S: speed, P: Position)
+ *  L > Position (Line Lengths: O#####P######Q####)
  *  P > Position (X###Y######Z####)
  *  V > Velocity (X###Y######Z####)
  *  D > Display All
+ *  X > Show Position (XYZ)
+ *  H > Go Home
+ *  F > Follow path
+ *  C > protoCell dropper
  *
  * W > Winch
  *  # > Winch Number
+ *      P > Set position (PID)
  *      V > Set velocity
  *      S > Stop
+ *      D > Display State
  *
  * P > Parameters
  *  # > Winch Control
@@ -164,14 +248,15 @@ void loop() {
  *      A > All (P#####V#####I#####)
  *      D > Display All
  *
- *  H > Height of the mounts
- *  OP > O-P Distance
- *  PQ > P-Q Distance
- *  OQ > O-Q Distance
- *  OR > O-R Distance
- *  PR > P-R Distance
- *  QR > Q-R Distance
- *  D > Display All
+ *  P > Positioning Parameters (One line)
+ *      H > Height of the mounts
+ *      OP > O-P Distance
+ *      PQ > P-Q Distance
+ *      OQ > O-Q Distance
+ *      OR > O-R Distance
+ *      PR > P-R Distance
+ *      QR > Q-R Distance
+ *      D > Display All
  *
  */
 
@@ -207,6 +292,55 @@ void serial_loop(){
     //logger.loop();
 }
 
+void waypoint_loop(){
+    bool doStop = false;
+    for(int i = 0; i < 3; i++){ // Check if all axes are in the right spot.
+        if(fabs(winches[i].current_position()-winches[i].pos_setpt) < 2.0){
+            if (i == 2) {
+                doStop = true;
+            }
+        } else {
+            break;
+        }
+    }
+
+    if(doStop){
+        wifiResponse("Reached Waypoint.");
+        float p[] = {paths[path_i].destination.x, paths[path_i].destination.y, paths[path_i].destination.z};
+        for( int winch_i = 0; winch_i < 3; winch_i++ ) {
+            winches[winch_i].pos_setpt = p[winch_i];
+            winches[winch_i].control_mode = POSITION;
+            winches[winch_i].go();
+        }
+        opMode = PATH_TO_DESTINATION;
+    }
+}
+
+void to_destination_loop(){
+    bool doStop = false;
+    for(int i = 0; i < 3; i++){ // Check if all axes are in the right spot.
+        if(fabs(winches[i].current_position()-winches[i].pos_setpt) < 0.5){
+            if (i == 2) {
+                doStop = true;
+            }
+        } else {
+            break;
+        }
+    }
+
+    if(doStop){
+        wifiResponse("Reached Destination.");
+        for( int winch_i = 0; winch_i < 3; winch_i++ ) {
+            winches[winch_i].stop();
+        }
+        opMode = PATH_AT_DESTINATION;
+    }
+}
+
+void at_destination_loop(){
+    opMode = NO_PATH;
+}
+
 /*void SerialEvent1(){
     char character = Serial1.read();
     if (character != '\n') {
@@ -226,7 +360,7 @@ void handleSerialInput(String serial_in){
         } else if ( serial_in[1] == '1' ){
             doOnLED();
         } else if ( serial_in[1] == 'P' ){
-            doBrightPWM(serial_in.substring(2).toInt());
+            doBrightOnOff(serial_in.substring(2).toInt());
         } else {
             wifiResponse("ERR: Invalid LED Command");
         }
@@ -237,24 +371,40 @@ void handleSerialInput(String serial_in){
         } else if ( serial_in[1] == 'G' ){
             doGo();
         } else if ( serial_in[1] == 'M' ){
-            doSetMode(0);
+            doSetMode(serial_in.charAt(2));
         } else if ( serial_in[1] == 'P' ){ // In the format X######Y#####Z####
             doSetXYZ(serial_in.substring(2));
         } else if ( serial_in[1] == 'V' ){
             doSetVelocity(serial_in.substring(2));
         } else if ( serial_in[1] == 'D' ){
             doDisplayRobotPositioning();
+        } else if ( serial_in[1] == 'L' ){
+            doSetEncoderSetpoint(serial_in.substring(2));
+        } else if ( serial_in[1] == 'X' ){
+            doDisplayRobotXYZ();
+        } else if ( serial_in[1] == 'H' ){
+            doGoHome();
+        } else if ( serial_in[1] == 'F' ){
+            int path_i = serial_in.substring(2, 3).toInt();
+            doFollowPath(path_i);
+        } else if ( serial_in[1] == 'C' ){
+            int angle = serial_in.substring(2).toInt();
+            doDroplet(angle);
         } else {
             wifiResponse("ERR: Invalid Robot Command");
         }
     } else if ( serial_in[0] == 'W' ) { // Winch motion functions
         wifiResponse("Performing Winch function...");
-        int winch_i = serial_in.substring(1, 2).toInt();
-        Serial.printf("Actuating winch %i, %c.\n", winch_i, serial_in.charAt(1));
+        int winch_i = serial_in.substring(1, 2).toInt();//int winch_i = serial_in[1] - 48; // Subtract the ASCII char code for '0' == 48
+        Serial.printf("Actuating winch %i, %c.\n", winch_i, serial_in[1]);
         if( serial_in[2] == 'S' ){
             doWinchStop(winch_i);
         } else if ( serial_in[2] == 'V' ){
             doSetWinchSignal(winch_i,serial_in.substring(3).toInt());
+        } else if ( serial_in[2] == 'P' ){
+            doSetWinchPositionSetpoint(winch_i, serial_in.substring(3).toFloat());
+        } else if ( serial_in[2] == 'D' ){
+            doDisplayWinchState(winch_i);
         } else {
             wifiResponse("ERR: Invalid Robot Command");
         }
@@ -287,6 +437,7 @@ void handleSerialInput(String serial_in){
 
 // Robot functions
 void doStop(){
+    opMode = NO_PATH;
     for( int i = 0; i < 3; i++ ){
         winches[i].stop();
     }
@@ -324,7 +475,23 @@ void _str_to_xyz(String xyz_string, float *x, float *y, float *z){
 void doSetXYZ(String xyz_string){
     float x, y, z;
     _str_to_xyz(xyz_string, &x, &y, &z);
-    robot_pos.setpoint = {x, y, z};
+    robot_pos.CalculateLineOPQ(x, y, z);
+
+    //TODO: This is only true if the encoder starts at the line length and counts negative for up.
+    A.pos_setpt = robot_pos.lineLengthSetpoints.OR;
+    B.pos_setpt = robot_pos.lineLengthSetpoints.PR;
+    C.pos_setpt = robot_pos.lineLengthSetpoints.QR;
+
+}
+
+void doSetEncoderSetpoint(String opqr_string){
+    float _or, _pr, _qr;
+    _str_to_xyz(opqr_string, &_or, &_pr, &_qr);
+
+    //TODO: This is only true if the encoder starts at the line length and counts negative for up.
+    A.pos_setpt = _or;
+    B.pos_setpt = _pr;
+    C.pos_setpt = _qr;
 }
 
 void doSetVelocity( String xyz_string ){
@@ -345,17 +512,17 @@ void doDisplayRobotPositioning(){
 // Parameter Functions
 void doSetKp(float k, int winch_i){
     Serial.printf("Setting Kp to %i.%i\n", (int)k, ((int)(k*100.0))%100);
-    winches[winch_i].position.SetTunings(k, 0.0, 0.0);
+    winches[winch_i].position->SetTunings(k, 0.0, 0.0);
 }
 
 void doSetKi(float k, int winch_i){
     Serial.printf("Setting Ki to %i.%i\n", (int)k, ((int)(k*100.0))%100);
-    winches[winch_i].speed.SetTunings(winches[winch_i].speed.GetKp(), k, 0.0);
+    winches[winch_i].speed->SetTunings(winches[winch_i].speed->GetKp(), k, 0.0);
 }
 
 void doSetKv(float k, int winch_i){
     Serial.printf("Setting Kv to %i.%i\n", (int)k, ((int)(k*100.0))%100);
-    winches[winch_i].speed.SetTunings(k, winches[winch_i].speed.GetKi(), 0.0);
+    winches[winch_i].speed->SetTunings(k, winches[winch_i].speed->GetKi(), 0.0);
 }
 
 void doDisplayWinchPIDParams(int winch_i){
@@ -365,9 +532,9 @@ void doDisplayWinchPIDParams(int winch_i){
                   (int)winches[winch_i].speed.GetKi(), ((int)(winches[winch_i].speed.GetKi()*100.0))%100
     );*/
 
-    String pid = String("Param > Kp: ") + String(winches[winch_i].position.GetKp());
-    pid += String(", Kv:") + String(winches[winch_i].speed.GetKp());
-    pid += String(", Ki") + String(winches[winch_i].speed.GetKi());
+    String pid = String("Param > Kp: ") + String(winches[winch_i].position->GetKp());
+    pid += String(", Kv:") + String(winches[winch_i].speed->GetKp());
+    pid += String(", Ki") + String(winches[winch_i].speed->GetKi());
     char response[255];
     pid.toCharArray(response, 255);
     wifiResponse(response);
@@ -423,6 +590,42 @@ void doDisplayRobotParams(){
     wifiResponse(response);
 }
 
+void doDisplayRobotXYZ(){
+    char response[255];
+    sprintf(response, "Current Position: %i, %i, %i", (int)robot_pos.R.x, (int)robot_pos.R.y, (int)robot_pos.R.z);
+    wifiResponse(response);
+}
+
+void doGoHome(){
+    for( int winch_i = 0; winch_i < 3; winch_i++ ) {
+        winches[winch_i].pos_setpt = -1.0;
+        winches[winch_i].control_mode = POSITION;
+        winches[winch_i].go();
+    }
+    wifiResponse("Going Home.");
+}
+
+void doFollowPath(int i){
+    char response[255];
+    sprintf(response, "Following path %i", i);
+    wifiResponse(response);
+
+    path_i = i;
+    float p[] = {paths[i].waypoint.x, paths[i].waypoint.y, paths[i].waypoint.z};
+    for( int winch_i = 0; winch_i < 3; winch_i++ ) {
+        winches[winch_i].pos_setpt = p[winch_i];
+        winches[winch_i].control_mode = POSITION;
+        winches[winch_i].go();
+    }
+
+    opMode = PATH_TO_WAYPOINT;
+
+}
+
+void doDroplet(int direction){ // direction between 0 and 180
+    dropperServo.write(direction);
+}
+
 // Winch Functions
 void doWinchStop(int winch_i){
     winches[winch_i].stop();
@@ -430,6 +633,20 @@ void doWinchStop(int winch_i){
 
 void doSetWinchSignal(int winch_i, int signal){
     winches[winch_i].go_signal(signal);
+}
+
+void doSetWinchPositionSetpoint(int winch_i, float setpoint){
+    winches[winch_i].pos_setpt = setpoint;
+    winches[winch_i].control_mode = POSITION;
+}
+
+void doDisplayWinchState(int winch_i){
+    char response[255];
+    sprintf(response, "Winch %i Position: %i.%i, Est. Speed: %i.%i",
+            (int)(winches[winch_i].current_position()), (int)(winches[winch_i].current_position()*100),
+            (int)(winches[winch_i].spd_est), (int)(winches[winch_i].spd_est*100)
+    );
+    wifiResponse(response);
 }
 
 // LED Functions
@@ -443,12 +660,15 @@ void doOffLED(){
     digitalWrite(LED_BUILTIN, LOW);
 }
 
-void doBrightPWM(int pwm){
-    analogWrite(BRIGHT_LED, pwm);
+void doBrightOnOff(int onoff){
 
-    char resp[100];
-    sprintf(resp, "Setting bright LED to PWM %i", pwm);
-    wifiResponse(resp);
+    if( onoff > 0 ) {
+        digitalWrite(BRIGHT_LED, HIGH);
+        wifiResponse("Setting bright LED to ON");
+    } else {
+        digitalWrite(BRIGHT_LED, LOW);
+        wifiResponse("Setting bright LED to OFF");
+    }
 }
 
 String logLoop(){

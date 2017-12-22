@@ -51,4 +51,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(${PROJECT_NAME} ${SRC_LIST} src/main.cpp src/Winch.cpp src/Winch.h src/pindefs.h src/SDLogger.cpp src/SDLogger.h src/old_code.h src/robot.cpp src/robot.h)
+add_executable(${PROJECT_NAME} ${SRC_LIST} src/main.cpp src/Winch.cpp src/Winch.h src/pindefs.h src/SDLogger.cpp src/SDLogger.h src/old_code.h src/robot.cpp src/robot.h src/default_params.h)

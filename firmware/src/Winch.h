@@ -12,22 +12,22 @@
 #include <PID_v1.h>
 
 #if defined(__MK66FX1M0__) || defined(__MK64FX512__)
-#define MOTOR_UPPER_LIMIT 75
+#define MOTOR_UPPER_LIMIT 150
 #define MOTOR_LOWER_LIMIT -255
 
-#define POSITION_UPPER_LIMIT 0
-#define POSITION_LOWER_LIMIT -20000
+#define POSITION_UPPER_LIMIT 100
+#define POSITION_LOWER_LIMIT -100
 
 // Used to calculate velocity from encoder motion and microseconds
 #define VELOCITY_SCALE_FACTOR 1000.0
 #define TICKS_PER_REVOLUTION 1024 // TODO is this right
 #endif
 #ifdef __MK20DX256__ // Teensy 3.2 (Test Rig)
-#define MOTOR_UPPER_LIMIT 255
+#define MOTOR_UPPER_LIMIT 100
 #define MOTOR_LOWER_LIMIT -255
 
-#define POSITION_UPPER_LIMIT 100
-#define POSITION_LOWER_LIMIT -100
+#define POSITION_UPPER_LIMIT 20000
+#define POSITION_LOWER_LIMIT -20000
 
 // Used to calculate velocity from encoder motion and microseconds
 #define VELOCITY_SCALE_FACTOR 100000.0
@@ -57,7 +57,7 @@ public:
     Motor motor;
 
     // Encoder
-    Encoder enc;
+    Encoder* enc;
     int encA, encB;
     double enc_pos; // Encoder position, in revolutions. 1 rev = 1.0.
     //float last_pos;
@@ -74,14 +74,14 @@ public:
     // Define the parameters
     double pos_Kp, spd_Kp, spd_Ki;
 
-    int control_mode = POSITION;
-    int stop_go = STOP;
+    int control_mode = POSITION; // Is it position- or speed-controlled
+    int stop_go = STOP; // Is it in stop mode or go mode
 
     int signal = 0;
 
     //Specify the links and initial tuning parameters
-    PID position;//(&pos_in, &pos_out, &pos_setpt, 0.0, 0.0, 0.0, DIRECT);
-    PID speed;//(&spd_in, &spd_out, &spd_setpt, 0.0, 0.0, 0.0, DIRECT);
+    PID * position;//(&pos_in, &pos_out, &pos_setpt, 0.0, 0.0, 0.0, DIRECT);
+    PID * speed;//(&spd_in, &spd_out, &spd_setpt, 0.0, 0.0, 0.0, DIRECT);
 
     // Estimation (see https://www.embeddedrelated.com/showarticle/530.php)
     double pos_est = 0; // Position estimate
