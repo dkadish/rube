@@ -5,7 +5,7 @@
 #include "Altimeter.h"
 
 Altimeter::Altimeter(i2c_t3 *wire) : wire(wire) {
-    altimeter(wire);
+    altimeter = MPL3115A2(wire);
 }
 
 void Altimeter::setup() {
