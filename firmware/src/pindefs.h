@@ -5,59 +5,111 @@
 #ifndef FIRMWARE_PINDEFS_H
 #define FIRMWARE_PINDEFS_H
 
-#if defined(__MK66FX1M0__) || defined(__MK64FX512__)
-#define ENC1A 23
-#define ENC1B 22
-
-#define ENC2A 21
-#define ENC2B 20
-
-#define ENC3A 19
-#define ENC3B 18
-
-#endif
-#ifdef __MK20DX256__
-#define ENC1A 5
-#define ENC1B 6
-
-#define ENC2A ENC1A
-#define ENC2B ENC1B
-
-#define ENC3A ENC1A
-#define ENC3B ENC1B
-#endif
+#define RUBE_VERSION_4_2
 
 #if defined(__MK66FX1M0__) || defined(__MK64FX512__)
-// Pin settings for teensy 3.6 on stripboard
 
-    //********************** MOTOR DRIVER 1 **********************//
-    #define M1_STBY	10 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
-    // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
-    #define M1_AIN1 9
-    #define M1_BIN1 11
-    //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
-    #define M1_AIN2 8
-    #define M1_BIN2 12
-    //PWM input for channels A/B	Input	PWM input that controls the speed
-    #define M1_PWMA 3
-    #define M1_PWMB 4
+    #if defined(RUBE_VERSION_4_2)
+        // Pin settings for teensy 3.6 on Version 4.2 PCB
+
+        //********************** Barometer **********************//
+        // The barometer works on SCL3/SDA3
+        #define BAR_WIRE  wire3
+        #define BAR_SCL 57
+        #define BAR_SDA 56
+
+        //********************** Encoders **********************//
+        #define ENC1A 21
+        #define ENC1B 22
+        #define ENC1_INT 23
+
+        #define ENC2A 34
+        #define ENC2B 35
+        #define ENC2_INT 26
+
+        #define ENC3A 11
+        #define ENC3B 12
+        #define ENC3_INT 24
+
+        //********************** MOTOR DRIVER 1 **********************//
+        #define M1_STBY	8 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
+        // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M1_AIN1 9
+        #define M1_BIN1 53
+        //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M1_AIN2 10
+        #define M1_BIN2 52
+        //PWM input for channels A/B	Input	PWM input that controls the speed
+        #define M1_PWMA 7
+        #define M1_PWMB 2
 
 
-    //********************** MOTOR DRIVER 2 **********************//
-    #define M2_STBY	26 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
-    // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
-    #define M2_AIN1 25
-    //#define M2_BIN1 27
-    //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
-    #define M2_AIN2 24
-    //#define M2_BIN2 28
-    //PWM input for channels A/B	Input	PWM input that controls the speed
-    #define M2_PWMA 29
-    //#define M2_PWMB 30
+        //********************** MOTOR DRIVER 2 **********************//
+        // M2_A is not mapped on this board, so B is just mapped to A so that the code works
+        #define M2_STBY	3 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
+        // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M2_BIN1 4
+        #define M2_AIN1 M2_BIN1
+        //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M2_BIN2 5
+        #define M2_AIN2 M2_BIN2
+        //PWM input for channels A/B	Input	PWM input that controls the speed
+        #define M2_PWMB 6
+        #define M2_PWMA M2_PWMB
+
+
+    #elif defined(RUBE_VERSION_4_0)
+    // Pin settings for teensy 3.6 on stripboard
+
+        //********************** Encoders **********************//
+        #define ENC1A 23
+        #define ENC1B 22
+
+        #define ENC2A 21
+        #define ENC2B 20
+
+        #define ENC3A 19
+        #define ENC3B 18
+
+        //********************** MOTOR DRIVER 1 **********************//
+        #define M1_STBY	10 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
+        // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M1_AIN1 9
+        #define M1_BIN1 11
+        //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M1_AIN2 8
+        #define M1_BIN2 12
+        //PWM input for channels A/B	Input	PWM input that controls the speed
+        #define M1_PWMA 3
+        #define M1_PWMB 4
+
+
+        //********************** MOTOR DRIVER 2 **********************//
+        #define M2_STBY	26 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
+        // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M2_AIN1 25
+        //#define M2_BIN1 27
+        //Input 2 for channels A/B	Input	One of the two inputs that determines the direction.
+        #define M2_AIN2 24
+        //#define M2_BIN2 28
+        //PWM input for channels A/B	Input	PWM input that controls the speed
+        #define M2_PWMA 29
+        //#define M2_PWMB 30
+    #endif
 
 #endif
 #ifdef __MK20DX256__
 // Pin settings for teensy 3.2 on solderless breadboard
+
+    #define ENC1A 5
+    #define ENC1B 6
+
+    #define ENC2A ENC1A
+    #define ENC2B ENC1B
+
+    #define ENC3A ENC1A
+    #define ENC3B ENC1B
+
     #define M1_STBY	11 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
     // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
     #define M1_AIN1 8
