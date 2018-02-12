@@ -93,6 +93,8 @@ void setup(){
 
     motorTimer = 0;
     enc1.write(0);
+    enc2.write(0);
+    enc3.write(0);
 }
 
 

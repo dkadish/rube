@@ -1,0 +1,6 @@
+"Source:","/Users/davk/Documents/phd/projects/rube/hardware/rube_main/rube_main.sch"
+"Date:","Wednesday, 18 October 2017 'AMt' 00.58.07"
+"Tool:","Eeschema 4.0.7"
+"Component Count:","1"
+"Ref","Value","Footprint","Datasheet","Manufacturer","Vendor"
+"U1","Teensy3.6","teensy:Teensy35_36","","",""
