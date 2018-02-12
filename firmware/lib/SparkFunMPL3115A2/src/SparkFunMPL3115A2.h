@@ -102,10 +102,8 @@ private:
   //Private Functions
 
 #if defined(__arm__) && defined(CORE_TEENSY)
-    #pragma message "Compiling for Teensy"
     i2c_t3 * _wire;
 #else
-    #pragma message "Compiling for Arduino"
     TwoWire * _wire;
 #endif
 

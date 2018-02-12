@@ -26,6 +26,9 @@ void setup(){
     winch.setup();
     Serial.printf("Finished setting up Winch (%i ms)\n", millis());
 
+    
+
+
     Serial.printf("Looping once (%i ms)\n", millis());
     loopOnce();
     Serial.printf("Finished loop (%i ms)\n", millis());
