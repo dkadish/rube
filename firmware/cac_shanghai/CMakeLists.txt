@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(firmware)
+project(cac_shanghai)
 
 include(CMakeListsPrivate.txt)
 
@@ -51,4 +51,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(${PROJECT_NAME} ${SRC_LIST} src/main.cpp src/Winch.cpp src/Winch.h src/pindefs.h src/SDLogger.cpp src/SDLogger.h src/old_code.h src/robot.cpp src/robot.h src/default_params.h src/Altimeter.cpp src/Altimeter.h)
+add_executable(${PROJECT_NAME} ${SRC_LIST})
