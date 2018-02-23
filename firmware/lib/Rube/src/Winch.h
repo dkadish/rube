@@ -111,7 +111,8 @@ private:
     void comm_loop();
 
     // Printing variables
-    elapsedMillis printTimer = 0;
+    long printTimer = 0;
+    //elapsedMillis printTimer = 0;
 };
 
 
