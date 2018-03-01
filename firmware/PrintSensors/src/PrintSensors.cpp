@@ -25,6 +25,12 @@ Winch C(2, ENC3A, ENC3B,
 Winch winches[] = {A, B, C};
 const int N_WINCHES = 3;
 
+// Scales
+HX711 A_scale, B_scale, C_scale;
+HX711 scales[] = {A_scale, B_scale, C_scale};
+int scales_dout[] = {DOUT_A, DOUT_B, DOUT_C};
+int scales_sck[] = {SCK_A, SCK_B, SCK_C};
+
 // IMU
 #include <NXPMotionSense.h>
 #include <i2c_t3.h>
@@ -40,14 +46,27 @@ void setup(){
 
     // Serial connection
     Serial.begin(9600);
-    delay(2000);
+    while (!Serial) {
+        ; // wait for serial port to connect. Needed for native USB port only
+    }
     INFO("Finished initializing Serial");
 
     // Winch
     for( int i=0; i < N_WINCHES; i++) {
         winches[i].setup();
+        INFO("Finished setting up 1 Winch");
     }
     INFO("Finished setting up Winch");
+
+    // Scales
+    //TODO Seems like you need to touch the MCU to get this working.
+    for( int i=0; i < N_WINCHES; i++) {
+        scales[i].begin(scales_dout[i], scales_sck[i]);
+        scales[i].set_scale(2280.f);
+        scales[i].tare();
+        INFO("Finished setting up 1 Scale");
+    }
+    INFO("Finished setting up Scales");
 
     // IMU
     imu.begin();
@@ -69,12 +88,27 @@ void loop(){
     // Winch
     for( int i=0; i < N_WINCHES; i++) {
         winches[i].loop();
-        if (printTimer > 1000) {
-            Serial.printf("The current position of the winch %i is ", i);
+    }
+    if (printTimer > 1000) {
+        Serial.printf("The current positions of the winches are: ");
+        for( int i=0; i < N_WINCHES; i++) {
             Serial.print(winches[i].enc->read());
-            Serial.print(", ");
-            Serial.println(winches[i].current_position());
+            if( i < 2 )
+                Serial.print(", ");
         }
+        Serial.println();
+    }
+
+    // Scales
+    if (printTimer > 1000) {
+        for( int i=0; i < N_WINCHES; i++) {
+            Serial.printf("The current weights are: ");
+            Serial.print(scales[i].get_units());
+            if( i < 2 )
+                Serial.print(", ");
+        }
+        Serial.println();
+
     }
 
     // IMU
@@ -89,19 +123,19 @@ void loop(){
 
         // Update the SensorFusion filter
         imu_filter.update(gx, gy, gz, ax, ay, az, mx, my, mz);
+    }
 
+    if(printTimer > 1000) {
         // print the heading, pitch and roll
         roll = imu_filter.getRoll();
         pitch = imu_filter.getPitch();
         heading = imu_filter.getYaw();
-        if(printTimer > 1000) {
-            Serial.print("Orientation: ");
-            Serial.print(heading);
-            Serial.print(" ");
-            Serial.print(pitch);
-            Serial.print(" ");
-            Serial.println(roll);
-        }
+        Serial.print("Orientation: ");
+        Serial.print(heading);
+        Serial.print(" ");
+        Serial.print(pitch);
+        Serial.print(" ");
+        Serial.println(roll);
     }
 
     if( printTimer > 1000 ) printTimer = 0;

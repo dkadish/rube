@@ -31,6 +31,14 @@
         #define ENC3B 12
         #define ENC3_INT 24
 
+        //********************** HX711 **********************//
+        #define DOUT_A 18
+        #define SCK_A 17
+        #define DOUT_B 49
+        #define SCK_B 50
+        #define DOUT_C 19
+        #define SCK_C 20
+
         //********************** MOTOR DRIVER 1 **********************//
         #define M1_STBY	8 //Allows the H-bridges to work when high (has a pulldown resistor so it must actively pulled high)
         // Input 1 for channels A/B	Input	One of the two inputs that determines the direction.
