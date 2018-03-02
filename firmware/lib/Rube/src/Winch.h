@@ -45,6 +45,7 @@ class Winch {
 public:
     Winch(int index, int encA, int encB,
           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
+          int scale_dout, int scale_sck,
           double positionKp, double speedKp, double speedKi
         );
 
@@ -65,7 +66,7 @@ public:
     elapsedMicros encTimer;
 
     // Scale
-    // HX711 scale;
+    HX711 scale;
 
     // PID
     //Define Variables we'll be connecting to
@@ -102,13 +103,18 @@ private:
     // Setup functions
     void motor_setup();
     void enc_setup();
+    void scale_setup();
     void pid_setup();
 
     // Loop functions
     void motor_loop();
     void enc_loop();
+    void scale_loop();
     void pid_loop();
     void comm_loop();
+
+    // Scale Variables
+    int dout, sck;
 
     // Printing variables
     long printTimer = 0;

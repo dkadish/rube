@@ -9,8 +9,10 @@
 
 Winch::Winch(int index, int encA, int encB,
              int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
+             int scale_dout, int scale_sck,
              double positionKp, double speedKp, double speedKi
     ): index(index), encA(encA), encB(encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
+       dout(scale_dout), sck(scale_sck),
        pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
        //position(&pos_in, &pos_out, &pos_setpt, positionKp, 0.0, 0.0, DIRECT),
        //speed(&spd_in, &spd_out, &pos_out, speedKp, speedKi, 0.0, DIRECT),
@@ -52,6 +54,13 @@ void Winch::pid_setup() {
 
 }
 
+void Winch::scale_setup() {
+    scale.begin(dout, sck);
+    //TODO Fix scale calibration and taring.
+    scale.set_scale(2280.f);
+    scale.tare();
+}
+
 void Winch::setup(){
 
     //scale_setup();
@@ -63,6 +72,10 @@ void Winch::setup(){
     sprintf(resp, "Winch %i Setting up encoder.", index);
     wifiResponse(resp);
     enc_setup();
+
+    sprintf(resp, "Winch %i Setting up scale.", index);
+    wifiResponse(resp);
+    scale_setup();
 
     sprintf(resp, "Winch %i Setting up pid.", index);
     wifiResponse(resp);
@@ -159,6 +172,13 @@ void Winch::enc_loop() {
 
 }
 
+void Winch::scale_loop() {
+    if (printTimer > 1000) {
+        Serial.printf("Weight %i: ", index);
+        Serial.println(scale.get_units());
+    }
+}
+
 void Winch::pid_loop() {
 }
 
@@ -170,6 +190,7 @@ void Winch::loop(){
 
     motor_loop();
     enc_loop();
+    scale_loop();
     pid_loop();
     comm_loop();
 }
