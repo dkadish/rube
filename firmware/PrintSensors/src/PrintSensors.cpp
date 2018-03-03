@@ -30,12 +30,6 @@ Winch C(2, ENC3A, ENC3B,
 Winch winches[] = {A, B, C};
 const int N_WINCHES = 3;
 
-// Scales
-HX711 A_scale, B_scale, C_scale;
-HX711 scales[] = {A_scale, B_scale, C_scale};
-int scales_dout[] = {DOUT_A, DOUT_B, DOUT_C};
-int scales_sck[] = {SCK_A, SCK_B, SCK_C};
-
 // IMU
 #include <NXPMotionSense.h>
 #include <i2c_t3.h>

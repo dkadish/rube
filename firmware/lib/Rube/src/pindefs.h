@@ -65,6 +65,20 @@
         #define M2_PWMB 6
         #define M2_PWMA M2_PWMB
 
+        //********************** MOTOR MAPPINGS **********************//
+        #define IN1_0 M1_BIN1
+        #define IN2_0 M1_BIN2
+        #define PWM_0 M1_PWMB
+        #define STBY_0 M1_STBY
+        #define IN1_1 M1_AIN1
+        #define IN2_1 M1_AIN2
+        #define PWM_1 M1_PWMA
+        #define STBY_1 M1_STBY
+        #define IN1_2 M2_BIN1
+        #define IN2_2 M2_BIN2
+        #define PWM_2 M2_PWMB
+        #define STBY_2 M2_STBY
+
 
     #elif defined(RUBE_VERSION_4_0)
     // Pin settings for teensy 3.6 on stripboard

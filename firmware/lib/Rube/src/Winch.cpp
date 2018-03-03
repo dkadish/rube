@@ -29,12 +29,9 @@ void Winch::motor_setup() {
 void Winch::enc_setup() {
     enc = new Encoder(encA, encB);
 
-    // Set the encoder initially to 1.0 rev so that it doesn't hit the ground when stopping.
-    // Always stop at 1.0
-    enc->write(-(int)(TICKS_PER_REVOLUTION));
+    enc->write(0);
 
     enc_pos = 0;
-    //last_pos = 0;
 
     // Set velocities to 0
     spd_est = 0.0;
