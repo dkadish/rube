@@ -45,7 +45,7 @@ class Winch {
 public:
     Winch(int index, int encA, int encB,
           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
-          int scale_dout, int scale_sck,
+          int scale_dout, int scale_sck, long scale_offset,
           double positionKp, double speedKp, double speedKi
         );
 
@@ -67,6 +67,8 @@ public:
 
     // Scale
     HX711 scale;
+    long scale_offset;
+    float tension; // Stores the tension on the line. Updated in loop. Measured in no particular unit at the moment.
 
     // PID
     //Define Variables we'll be connecting to
@@ -98,6 +100,9 @@ public:
     void go_signal(int signal);
     void stop();
     void go();
+
+    // Winch Functions
+    bool isUnderTension();
 
 private:
     // Setup functions

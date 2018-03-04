@@ -6,13 +6,15 @@
 
 #include "Winch.h"
 #include "wifi.h"
+#include "config.h"
+#include "../../../../../../../../.platformio/packages/framework-arduinoteensy/cores/teensy3/elapsedMillis.h"
 
 Winch::Winch(int index, int encA, int encB,
              int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
-             int scale_dout, int scale_sck,
+             int scale_dout, int scale_sck, long offset,
              double positionKp, double speedKp, double speedKi
     ): index(index), encA(encA), encB(encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
-       dout(scale_dout), sck(scale_sck),
+       dout(scale_dout), sck(scale_sck), scale_offset(offset),
        pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
        //position(&pos_in, &pos_out, &pos_setpt, positionKp, 0.0, 0.0, DIRECT),
        //speed(&spd_in, &spd_out, &pos_out, speedKp, speedKi, 0.0, DIRECT),
@@ -55,7 +57,7 @@ void Winch::scale_setup() {
     scale.begin(dout, sck);
     //TODO Fix scale calibration and taring.
     scale.set_scale(2280.f);
-    scale.tare();
+    scale.set_offset(scale_offset);
 }
 
 void Winch::setup(){
@@ -170,6 +172,8 @@ void Winch::enc_loop() {
 }
 
 void Winch::scale_loop() {
+    tension = scale.get_units();
+
     if (printTimer > 1000) {
         Serial.printf("Weight %i: ", index);
         Serial.println(scale.get_units());
@@ -184,14 +188,37 @@ void Winch::comm_loop() {
 }
 
 void Winch::loop(){
-
+//    elapsedMicros loopTimer=0;
     motor_loop();
+//    Serial.print(loopTimer);
+//    Serial.println(" microseconds.");
+//    loopTimer=0;
     enc_loop();
+//    Serial.print(loopTimer);
+//    Serial.println(" microseconds.");
+//     loopTimer=0;
     scale_loop();
+//    Serial.print(loopTimer);
+//    Serial.println(" microseconds.");
+//     loopTimer=0;
     pid_loop();
+//    Serial.print(loopTimer);
+//    Serial.println(" microseconds.");
+//     loopTimer=0;
     comm_loop();
+//    Serial.print("Loop took ");
+//    Serial.print(loopTimer);
+//    Serial.println(" microseconds.");
 }
 
 double Winch::current_position() {
     return ((double)enc->read())/TICKS_PER_REVOLUTION;
+}
+
+// Winch States
+bool Winch::isUnderTension() {
+    if(tension > STRING_TENSION_THRESHOLD)
+        return true;
+
+    return false;
 }
