@@ -29,11 +29,10 @@ Winch winches[] = {A, B, C};
 const int N_WINCHES = 3;
 
 // Communication
-usb_serial_class
-        cmdSerial=Serial, // Commands sent to the robot
-        msgSerial=Serial, // Messages from the robot
-        datSerial=Serial, // Data logs from the robot
-        logSerial=Serial; // Log messages from the
+Stream* cmdSerial=&Serial1; // Commands sent to the robot
+Stream* msgSerial=&Serial1; // Messages from the robot
+Stream* datSerial=&Serial; // Data logs from the robot
+Stream* logSerial=&Serial; // Log messages from the
 
 String command = ""; // Commands received over serial
 

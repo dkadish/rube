@@ -79,15 +79,17 @@ void robot_loop(){
 }
 
 void serial_loop(){
-    while (cmdSerial.available())
+    while (cmdSerial->available())
     {
-        char character = Serial.read();
+        char character = cmdSerial->read();
+        msgSerial->println(character);
         if (character != '\n') {
             command.concat(character);
         } else {
+            msgSerial->println(command);
             handleSerialInput(command);
             command = "";
-            cmdSerial.flush();
+            cmdSerial->flush();
         }
     }
 }
@@ -164,11 +166,11 @@ void runDiagnostics(){
         winches[i].stop_go = STOP;
         winches[i].loop();
         endPos = winches[i].enc->read();
-        msgSerial.printf("Ran from %i > %i > %i\n", startPos, midPos, endPos);
-        msgSerial.print("Weight: Down = ");
-        msgSerial.print(downWeight);
-        msgSerial.print(", Up = ");
-        msgSerial.println(upWeight);
+        msgSerial->printf("Ran from %i > %i > %i\n", startPos, midPos, endPos);
+        msgSerial->print("Weight: Down = ");
+        msgSerial->print(downWeight);
+        msgSerial->print(", Up = ");
+        msgSerial->println(upWeight);
     }
     INFO("Running diagnostic loop: COMPLETE...")
 }
@@ -178,12 +180,12 @@ void printConfig(){
 
     // Scales
     for( int i=0; i < N_WINCHES; i++) {
-        msgSerial.printf("Scale offsets: ");
-        msgSerial.print(winches[i].scale.get_offset());
+        msgSerial->printf("Scale offsets: ");
+        msgSerial->print(winches[i].scale.get_offset());
         if( i < 2 )
-            msgSerial.print(", ");
+            msgSerial->print(", ");
     }
-    msgSerial.println();
+    msgSerial->println();
 
     // IMU
 
@@ -191,16 +193,16 @@ void printConfig(){
 }
 
 void tareScales(){
-    msgSerial.print("Scale offsets: ");
+    msgSerial->print("Scale offsets: ");
     for( int i=0; i < N_WINCHES; i++) {
         winches[i].scale.tare(10);
-        msgSerial.printf("%i: ", i);
-        msgSerial.print(winches[i].scale.get_offset());
-        msgSerial.print("L");
+        msgSerial->printf("%i: ", i);
+        msgSerial->print(winches[i].scale.get_offset());
+        msgSerial->print("L");
         if( i < 2 )
-            msgSerial.print(", ");
+            msgSerial->print(", ");
     }
-    msgSerial.println();
+    msgSerial->println();
 }
 
 void printSensors(){
@@ -208,26 +210,26 @@ void printSensors(){
     for( int i=0; i < N_WINCHES; i++) {
         winches[i].loop();
     }
-    msgSerial.printf("The current positions of the winches are: ");
+    msgSerial->printf("The current positions of the winches are: ");
     for( int i=0; i < N_WINCHES; i++) {
-        msgSerial.print(winches[i].enc->read());
+        msgSerial->print(winches[i].enc->read());
         if( i < 2 )
-            msgSerial.print(", ");
+            msgSerial->print(", ");
     }
-    msgSerial.println();
+    msgSerial->println();
 
     // Scales
-    msgSerial.printf("The current weights are: ");
+    msgSerial->printf("The current weights are: ");
     for( int i=0; i < N_WINCHES; i++) {
-        msgSerial.printf("%i: ", i);
-        msgSerial.print(winches[i].tension);
-        msgSerial.print("(");
-        msgSerial.print(winches[i].isUnderTension());
-        msgSerial.print(")");
+        msgSerial->printf("%i: ", i);
+        msgSerial->print(winches[i].tension);
+        msgSerial->print("(");
+        msgSerial->print(winches[i].isUnderTension());
+        msgSerial->print(")");
         if( i < 2 )
-            msgSerial.print(", ");
+            msgSerial->print(", ");
     }
-    msgSerial.println();
+    msgSerial->println();
 
     // IMU
     float ax, ay, az;
@@ -252,18 +254,18 @@ void printSensors(){
     roll = imu_filter.getRoll();
     pitch = imu_filter.getPitch();
     heading = imu_filter.getYaw();
-    msgSerial.print("Orientation: ");
-    msgSerial.print(heading);
-    msgSerial.print(" ");
-    msgSerial.print(pitch);
-    msgSerial.print(" ");
-    msgSerial.print(roll);
-    msgSerial.print(", Temperature:  ");
-    msgSerial.print(temperature);
-    msgSerial.print(", Altitude:  ");
-    msgSerial.print(altitude);
-    msgSerial.print(", Altitude:  ");
-    msgSerial.println(altint);
+    msgSerial->print("Orientation: ");
+    msgSerial->print(heading);
+    msgSerial->print(" ");
+    msgSerial->print(pitch);
+    msgSerial->print(" ");
+    msgSerial->print(roll);
+    msgSerial->print(", Temperature:  ");
+    msgSerial->print(temperature);
+    msgSerial->print(", Altitude:  ");
+    msgSerial->print(altitude);
+    msgSerial->print(", Altitude:  ");
+    msgSerial->println(altint);
 }
 
 // Winch Functions
