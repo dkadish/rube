@@ -1,0 +1,3 @@
+[submodule "firmware/lib/NXPMotionSense"]
+	path = firmware/lib/NXPMotionSense
+	url = git@github.com:dkadish/NXPMotionSense.git
