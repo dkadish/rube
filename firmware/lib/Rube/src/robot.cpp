@@ -69,7 +69,7 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
     R.z=mount_height-R.z;
 }
 
-void RobotPosition::CalculateLineOPQ(float x, float y, float z){
+void RobotPosition::CalculateLines(float x, float y, float z){
     setpoint.x=x;
     setpoint.y=y;
     setpoint.z=z;
@@ -81,3 +81,77 @@ void RobotPosition::CalculateLineOPQ(float x, float y, float z){
     lineLengthSetpoints.PR = int(sqrt(((setpoint.x-d)*(setpoint.x-d))+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h)))) ;
     lineLengthSetpoints.QR = int(sqrt(((setpoint.x-i)*(setpoint.x-i))+((setpoint.y-j)*(setpoint.y-j))+((setpoint.z-h)*(setpoint.z-h)))) ;
 }
+
+void RobotPosition::CalculateLines(Point3D) {
+
+}
+
+/**
+ * @brief Calculate the XYZ position of the robot given the winch geometries.
+ *
+ * Knowing the origin point of each winch and the length of each line, calculate
+ * the current position of the robot. This assumes that O is located at (0,0,0),
+ * P is at (d,0,0) and Q is at (i,j,0). In other words, the origins are planar
+ * and P is on the x-axis.
+ */
+Point3D RobotPosition::CalculateXYZ(WinchGeometry O, WinchGeometry P, WinchGeometry Q) {
+    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+
+    float x = (pow(O.length, 2) - pow(P.length, 2) + pow(d, 2))/(2*d);
+
+    float y = (pow(O.length,2)-pow(Q.length,2)+pow(i,2)+pow(j,2))/(2*j) - (i*x)/(j);
+
+    float z = - sqrt(pow(O.length,2) - pow(x,2) - pow(y,2));
+
+    Point3D r_xyz = {x, y, z};
+
+    return r_xyz;
+}
+
+// Find Position
+void Robot::getPosition(Point3D &position) {
+    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+
+    position.x = getX();
+
+    position.y = _getY(position.x);
+
+    position.z = _getz(position.x, position.y);
+}
+
+float Robot::getX(){
+    float d=P.origin.x;
+
+    float x = (pow(O.getLength(), 2) - pow(P.getLength(), 2) + pow(d, 2))/(2*d);
+    return x;
+}
+
+float Robot::_getY(float x) {
+    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+
+    float y = (pow(O.getLength(),2)-pow(Q.getLength(),2)+pow(i,2)+pow(j,2))/(2*j) - (i*x)/(j);
+    return y;
+}
+
+float Robot::getY() {
+    float y = _getY(getX());
+    return y;
+}
+
+float Robot::_getz(float x, float y) {
+    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+
+    float z = -sqrt(pow(O.getLength(),2) - pow(x,2) - pow(y,2));
+    return z;
+}
+
+float Robot::getZ() {
+    float x = getX();
+    float z = _getz(x, _getY(x));
+    return z;
+}
+
+void Robot::setPositionTarget(Point3D &position) {}
+void Robot::setXTarget(double x) {}
+void Robot::setYTarget(double y) {}
+void Robot::setZTarget(double z) {}
