@@ -172,12 +172,8 @@ void Winch::enc_loop() {
 }
 
 void Winch::scale_loop() {
-    tension = scale.get_units();
-
-    if (printTimer > 1000) {
-        Serial.printf("Weight %i: ", index);
-        Serial.println(scale.get_units());
-    }
+    if (scale.is_ready())
+        tension = scale.get_units(1);
 }
 
 void Winch::pid_loop() {
@@ -188,27 +184,11 @@ void Winch::comm_loop() {
 }
 
 void Winch::loop(){
-//    elapsedMicros loopTimer=0;
     motor_loop();
-//    Serial.print(loopTimer);
-//    Serial.println(" microseconds.");
-//    loopTimer=0;
     enc_loop();
-//    Serial.print(loopTimer);
-//    Serial.println(" microseconds.");
-//     loopTimer=0;
     scale_loop();
-//    Serial.print(loopTimer);
-//    Serial.println(" microseconds.");
-//     loopTimer=0;
     pid_loop();
-//    Serial.print(loopTimer);
-//    Serial.println(" microseconds.");
-//     loopTimer=0;
     comm_loop();
-//    Serial.print("Loop took ");
-//    Serial.print(loopTimer);
-//    Serial.println(" microseconds.");
 }
 
 double Winch::current_position() {
