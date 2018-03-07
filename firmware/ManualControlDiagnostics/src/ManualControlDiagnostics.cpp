@@ -388,7 +388,7 @@ void doRampUp(int winch_i, int ms){
         loop();
 
         // Raise the level every once in a while IF it has not moved since last time.
-        if ( rampTimer > lastPositioning ){
+        if ( rampTimer/5 > lastPositioning ){
             lastPositioning++;
             long winchPos = winches[winch_i].enc->read();
 
@@ -396,13 +396,13 @@ void doRampUp(int winch_i, int ms){
              * is <= the new position, it hasn't gone anywhere.
              */
             if( lastPosition <= winchPos){
-                level+=2;
+                level++;
             }
             lastPosition = winchPos;
         }
 
         // Print the tension every once in a while
-        if( rampTimer/10 > lastPrint ){
+        if( rampTimer/50 > lastPrint ){
             lastPrint++;
             msgSerial->printf("Ramp is at %i. Tension: %i.%i\n", level,
                               (int)(winches[winch_i].tension), decimalDigits(winches[winch_i].tension));
