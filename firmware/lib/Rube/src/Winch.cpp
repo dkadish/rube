@@ -6,7 +6,7 @@
 
 #include "Winch.h"
 #include "wifi.h"
-#include "config.h"
+#include "rube_config.h"
 #include "../../../../../../../../.platformio/packages/framework-arduinoteensy/cores/teensy3/elapsedMillis.h"
 
 Winch::Winch(int index, int encA, int encB,

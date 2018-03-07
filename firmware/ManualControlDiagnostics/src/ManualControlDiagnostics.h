@@ -7,12 +7,11 @@
 
 #include <Arduino.h>
 #include <pindefs.h>
-#include <config.h>
+#include <rube_config.h>
 #include <wifi.h>
 
 // Winches
 #include <Winch.h>
-//TODO: Check motor and encoder mappings. Are these right?
 Winch A(0, ENC1A, ENC1B,
         IN1_0, IN2_0, PWM_0, 1, STBY_0,
         DOUT_A, SCK_A, SCALE1_OFFSET,

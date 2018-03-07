@@ -369,8 +369,6 @@ void doRampUp(int winch_i, int ms){
     long lastPositioning = 0;
     long lastPosition = winches[winch_i].enc->read();
 
-    long a,b,c,d,e,f,g,h;
-
     while(rampTimer < ms) {
         winches[winch_i].go_signal(level);
 
@@ -402,7 +400,8 @@ void doRampUp(int winch_i, int ms){
         // Print the tension every once in a while
         if( rampTimer/50 > lastPrint ){
             lastPrint++;
-            msgSerial->printf("Ramp is at %i. Tension: %i.%i\n", level,
+            msgSerial->printf("Ramp is at %i. Position: %i.%i, Tension: %i.%i\n", level,
+                              (int)(winches[winch_i].current_position()), decimalDigits(winches[winch_i].current_position()),
                               (int)(winches[winch_i].tension), decimalDigits(winches[winch_i].tension));
         }
     }
@@ -433,8 +432,6 @@ void doRampDown(int winch_i, int ms) {
     int level = 0;
     long lastPositioning = 0;
     long lastPosition = winches[winch_i].enc->read();
-
-    long a,b,c,d,e,f,g,h;
 
     while(rampTimer < ms) {
         winches[winch_i].go_signal(level);
@@ -467,7 +464,8 @@ void doRampDown(int winch_i, int ms) {
         // Print the tension every once in a while
         if( rampTimer/50 > lastPrint ){
             lastPrint++;
-            msgSerial->printf("Ramp is at %i. Tension: %i.%i\n", level,
+            msgSerial->printf("Ramp is at %i. Position: %i.%i, Tension: %i.%i\n", level,
+                              (int)(winches[winch_i].current_position()), decimalDigits(winches[winch_i].current_position()),
                               (int)(winches[winch_i].tension), decimalDigits(winches[winch_i].tension));
         }
     }
