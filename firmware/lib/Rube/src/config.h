@@ -17,7 +17,7 @@
 #endif
 
 #ifndef STRING_TENSION_THRESHOLD
-    #define STRING_TENSION_THRESHOLD 15.0
+    #define STRING_TENSION_THRESHOLD 20.0
 #endif
 
 #endif //RUBE_CONFIG_H
