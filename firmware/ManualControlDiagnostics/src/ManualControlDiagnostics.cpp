@@ -312,7 +312,6 @@ void doTensionLine(int winch_i){
     }
 
     while(!winches[winch_i].isUnderTension()){
-        // Loop
         loop();
     }
     winches[winch_i].go_signal(0);
@@ -340,7 +339,6 @@ void doRelaxLine(int winch_i){
     }
 
     while(winches[winch_i].isUnderTension()){
-        // Loop
         loop();
     }
     // Stop the motor
@@ -374,11 +372,11 @@ void doRampUp(int winch_i, int ms){
     long a,b,c,d,e,f,g,h;
 
     while(rampTimer < ms) {
-//        cmdSerial->printf("Checking at %i, %i, %i\n", (int)rampTimer, ms, level);
         winches[winch_i].go_signal(level);
 
         // Stop if tension is lost
         if (!winches[winch_i].isUnderTension()){
+            winches[winch_i].go_signal(0);
             char response[255];
             sprintf(response, "Winch %i is lost tension.", winch_i);
             wifiResponse(response);
@@ -420,6 +418,68 @@ void doRampUp(int winch_i, int ms){
 }
 
 void doRampDown(int winch_i, int ms) {
+    msgSerial->printf("Ramping winch down %i for %i ms.\n", winch_i, ms);
+
+    // Don't go if it is not under tension.
+    if(!winches[winch_i].isUnderTension()) {
+        char response[255];
+        sprintf(response, "Winch %i is not under tension.", winch_i);
+        wifiResponse(response);
+        return;
+    }
+
+    elapsedMillis rampTimer = 0;
+    long lastPrint = 0;
+    int level = 0;
+    long lastPositioning = 0;
+    long lastPosition = winches[winch_i].enc->read();
+
+    long a,b,c,d,e,f,g,h;
+
+    while(rampTimer < ms) {
+        winches[winch_i].go_signal(level);
+
+        // Stop if tension is lost
+        if (!winches[winch_i].isUnderTension()){
+            winches[winch_i].go_signal(0); // Stop the robot right away.
+            char response[255];
+            sprintf(response, "Winch %i is lost tension.", winch_i);
+            wifiResponse(response);
+            return;
+        }
+
+        loop();
+
+        // Raise the level every once in a while IF it has not moved since last time.
+        if ( rampTimer/5 > lastPositioning ){
+            lastPositioning++;
+            long winchPos = winches[winch_i].enc->read();
+
+            /* The position goes negative as it rises. So, when the old position
+             * is <= the new position, it hasn't gone anywhere.
+             */
+            if( lastPosition >= winchPos){
+                level--;
+            }
+            lastPosition = winchPos;
+        }
+
+        // Print the tension every once in a while
+        if( rampTimer/50 > lastPrint ){
+            lastPrint++;
+            msgSerial->printf("Ramp is at %i. Tension: %i.%i\n", level,
+                              (int)(winches[winch_i].tension), decimalDigits(winches[winch_i].tension));
+        }
+    }
+    // Stop the motor
+    winches[winch_i].go_signal(0);
+
+    char response[255];
+    sprintf(response, "Winch %i ramped. Position: %i.%i, Tension: %i.%i.", winch_i,
+            (int)(winches[winch_i].current_position()), decimalDigits(winches[winch_i].current_position()),
+            (int)(winches[winch_i].tension), decimalDigits(winches[winch_i].tension)
+    );
+    wifiResponse(response);
 }
 
 int decimalDigits(float number){
