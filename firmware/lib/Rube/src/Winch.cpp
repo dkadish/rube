@@ -12,8 +12,8 @@
 Winch::Winch(int index, int encA, int encB,
              int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
              int scale_dout, int scale_sck, long offset,
-             double positionKp, double speedKp, double speedKi
-    ): index(index), encA(encA), encB(encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
+             float positionKp, float speedKp, float speedKi
+): index(index), encA(encA), encB(encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
        dout(scale_dout), sck(scale_sck), scale_offset(offset),
        pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
        //position(&pos_in, &pos_out, &pos_setpt, positionKp, 0.0, 0.0, DIRECT),
@@ -201,4 +201,12 @@ bool Winch::isUnderTension() {
         return true;
 
     return false;
+}
+
+void WinchController::setup() {
+
+}
+
+void WinchController::loop() {
+
 }

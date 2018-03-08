@@ -15,9 +15,11 @@
 
 // Winch
 #include <Winch.h>
+#include <rube_config.h>
 Winch winch(0, ENC1A, ENC1B,
         M1_BIN1, M1_BIN2, M1_PWMB, 1, M1_STBY,
-        10.0, 5.0, 0.5);
+        DOUT_A, SCK_A, SCALE1_OFFSET,
+        10.0f, 5.0f, 0.5f);
 
 // IMU
 #include <NXPMotionSense.h>

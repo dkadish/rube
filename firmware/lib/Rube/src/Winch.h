@@ -6,6 +6,7 @@
 #define FIRMWARE_WINCH_H
 
 #include "HX711.h"
+#include "Controller.h"
 #include <Encoder.h>
 #include <elapsedMillis.h>
 #include <SparkFun_TB6612.h>
@@ -46,8 +47,10 @@ public:
     Winch(int index, int encA, int encB,
           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
           int scale_dout, int scale_sck, long scale_offset,
-          double positionKp, double speedKp, double speedKi
-        );
+          float positionKp, float speedKp, float speedKi
+    );
+
+    Winch();
 
     // Internal Variables
     int cycles;
@@ -126,5 +129,12 @@ private:
     //elapsedMillis printTimer = 0;
 };
 
+class WinchController: Controller {
+public:
+    WinchController(Winch &winch);
+
+    virtual void setup();
+    virtual void loop();
+};
 
 #endif //FIRMWARE_WINCH_H
