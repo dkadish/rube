@@ -5,6 +5,7 @@
 #ifndef FIRMWARE_WINCH_H
 #define FIRMWARE_WINCH_H
 
+#include "Geometry.h"
 #include "HX711.h"
 #include "Controller.h"
 #include <Encoder.h>
@@ -22,6 +23,7 @@
 // Used to calculate velocity from encoder motion and microseconds
 #define VELOCITY_SCALE_FACTOR 1000.0
 #define TICKS_PER_REVOLUTION 1024 // TODO is this right
+#define METRES_PER_REVOLUTION (0.01*2*3.14159) // A = r * theta
 #endif
 #ifdef __MK20DX256__ // Teensy 3.2 (Test Rig)
 #define MOTOR_UPPER_LIMIT 100
@@ -41,6 +43,36 @@
 #define STOP 0
 #define GO 1
 
+struct EncoderParams {
+    int A;
+    int B;
+};
+
+struct MotorParams {
+    int in1;
+    int in2;
+    int pwm;
+    int offset;
+    int standby;
+};
+
+struct ScaleParams {
+    int dout;
+    int sck;
+    int offset;
+};
+
+struct FilterParams {
+    double positionKp;
+    double speedKp;
+    double speedKi;
+};
+
+struct PositionParams {
+    Point3D origin;
+    float length;
+};
+
 class Winch {
 
 public:
@@ -51,6 +83,18 @@ public:
     );
 
     Winch();
+
+    Winch(int index, EncoderParams enc_p, MotorParams motor_p,
+          ScaleParams scale_p, FilterParams filter_p);
+
+    Winch(int index, EncoderParams enc_p, MotorParams motor_p,
+          ScaleParams scale_p, FilterParams filter_p, PositionParams pos_p);
+
+
+    // Position Variables
+    Point3D origin = {0.0,0.0,0.0};
+    double startLength = 0.0;
+    double getLength();
 
     // Internal Variables
     int cycles;
@@ -99,7 +143,7 @@ public:
     void setup();
     void loop();
 
-    double current_position();
+    double current_position(); /**< Current position in number of revolutions */
     void go_signal(int signal);
     void stop();
     void go();

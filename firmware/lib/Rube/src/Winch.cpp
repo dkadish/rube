@@ -23,6 +23,29 @@ Winch::Winch(int index, int encA, int encB,
 
 }
 
+Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
+      ScaleParams scale_p, FilterParams filter_p):
+            index(index), encA(enc_p.A), encB(enc_p.B),
+            motor(motor_p.in1, motor_p.in2, motor_p.pwm, motor_p.offset, motor_p.standby),
+            dout(scale_p.dout), sck(scale_p.sck), scale_offset(scale_p.offset),
+            pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
+            stop_go(STOP){
+
+}
+
+Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
+             ScaleParams scale_p, FilterParams filter_p, PositionParams pos_p):
+        index(index), encA(enc_p.A), encB(enc_p.B),
+        motor(motor_p.in1, motor_p.in2, motor_p.pwm, motor_p.offset, motor_p.standby),
+        dout(scale_p.dout), sck(scale_p.sck), scale_offset(scale_p.offset),
+        pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
+        stop_go(STOP){
+    origin.x = pos_p.origin.x;
+    origin.y = pos_p.origin.y;
+    origin.z = pos_p.origin.z;
+    startLength = pos_p.length;
+}
+
 void Winch::motor_setup() {
     // Make the motor stop
     motor.brake();
@@ -209,4 +232,9 @@ void WinchController::setup() {
 
 void WinchController::loop() {
 
+}
+
+
+double Winch::getLength() {
+    return startLength - current_position()*METRES_PER_REVOLUTION;
 }
