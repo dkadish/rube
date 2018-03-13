@@ -8,5 +8,8 @@
       <file path="$PROJECT_DIR$/examples/Basic" />
       <file path="$PROJECT_DIR$/src" />
     </sourceRoots>
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/.piolibdeps" />
+    </libraryRoots>
   </component>
 </project>

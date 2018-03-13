@@ -20,4 +20,8 @@
     #define STRING_TENSION_THRESHOLD 20.0
 #endif
 
+#ifndef TICKS_PER_REVOLUTION
+    #define TICKS_PER_REVOLUTION 1024 // TODO is this right
+#endif
+
 #endif //RUBE_CONFIG_H

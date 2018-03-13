@@ -65,4 +65,4 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.piolibdeps)
     )
 endif()
 
-add_executable(${PROJECT_NAME} ${SRC_LIST} src/rube_config.h)
+add_executable(${PROJECT_NAME} ${SRC_LIST})

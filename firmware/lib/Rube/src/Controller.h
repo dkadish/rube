@@ -8,10 +8,16 @@
 
 class Controller {
 public:
-    bool enabled;
 
     virtual void setup() = 0;
     virtual void loop() = 0;
+
+
+    virtual void start() = 0;
+    virtual void end() = 0;
+
+protected:
+    bool enabled;
 };
 
 

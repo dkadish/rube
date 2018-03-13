@@ -90,8 +90,8 @@ public:
     Winch winches[3]; /**< The order here is switched (O-Q-P instead of O-P-Q) to reflect the mapping of electronics to physical space and the orientation of the robot. */
 
     //TODO: Build error here!
-    NXPMotionSense imu(&Wire1, &Wire3);
-    NXPSensorFusion imu_filter;
+    /*NXPMotionSense imu(&Wire1, &Wire3);
+    NXPSensorFusion imu_filter;*/
 
     // Position
     void getPosition(Point3D &position);
