@@ -66,7 +66,6 @@ env:
     - GH_REPO_REF: github.com/dkadish/rube.git
 #     - PLATFORMIO_CI_SRC=path/to/test/file.c
     - PLATFORMIO_CI_SRC=firmware/lib/Rube/examples/Basic/Basic.cpp
-    - PLATFORMIO_CI_SRC=firmware/lib/Rube/src
 
 # Install dependencies
 addons:
@@ -83,7 +82,7 @@ install:
     - platformio update
 
 script:
-    - platformio ci --lib="./firmware/lib/Rube/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
+    - platformio ci --lib="./firmware/lib/Rube/src/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
 
 # Generate and deploy documentation
 after_success:
