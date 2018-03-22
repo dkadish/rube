@@ -62,4 +62,4 @@
      - pip install -U platformio
 
  script:
-     - platformio ci --lib="." --board=ID_1 --board=ID_2 --board=ID_N
+     - platformio ci --lib="./firmware/lib/Rube/" --board=teensy36 --board=teensy35 --board=teensy31
