@@ -63,4 +63,4 @@
      - platformio update
 
  script:
-     - platformio ci --lib="./firmware/lib/Rube/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36 --board=teensy35 --board=teensy31
+     - platformio ci --lib="./firmware/lib/Rube/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
