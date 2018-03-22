@@ -15,3 +15,5 @@ Warning: ignoring unsupported tag `DOCBOOK_PROGRAMLISTING =' at line 1993, file 
 Warning: ignoring unsupported tag `PLANTUML_JAR_PATH      =' at line 2422, file /home/travis/build/dkadish/rube/Doxyfile
 Warning: ignoring unsupported tag `PLANTUML_CFG_FILE      =' at line 2427, file /home/travis/build/dkadish/rube/Doxyfile
 Warning: ignoring unsupported tag `PLANTUML_INCLUDE_PATH  =' at line 2432, file /home/travis/build/dkadish/rube/Doxyfile
+Warning: tag INPUT: input source `./firmware/lib/Rube/src' does not exist
+warning: source ./firmware/lib/Rube/src is not a readable file or directory... skipping.
