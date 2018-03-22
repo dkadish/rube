@@ -51,7 +51,7 @@ void MinimumMotionController::loop() {
         lastPosition = winchPos;
     }
 
-    winchDriver.go_signal(level);
+    winchDriver.setSignal(level);
 }
 
 void MinimumMotionController::start() {
@@ -61,6 +61,9 @@ void MinimumMotionController::start() {
     level = 0;
     lastPositioningTime = 0;
     lastPosition = winchDriver.enc->read();
+
+    winchDriver.setSignal(level);
+    winchDriver.go();
 }
 
 void MinimumMotionController::end() {
@@ -77,4 +80,24 @@ void MinimumMotionController::setDirection(bool positive) {
 
 MinimumMotionController::Status MinimumMotionController::getStatus(){
     return status;
+}
+
+void TensionMaintenanceController::loop() {
+    if(enabled){
+        if (!winchDriver.isUnderTension()){
+            winchDriver.setSignal(0);
+            winchDriver.stop();
+        }
+    }
+}
+
+void RetensioningController::loop() {
+    if(enabled){
+        if(winchDriver.isUnderTension()){
+            winchDriver.setSignal(0);
+            winchDriver.stop();
+
+            end();
+        }
+    }
 }

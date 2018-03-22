@@ -7,6 +7,7 @@
 
 #include "Geometry.h"
 #include "WinchDriver.h"
+#include "WinchController.h"
 
 #include <HX711.h>
 #include <PID_v1.h>
@@ -73,6 +74,11 @@ public:
     // Main Functions
     void setup();
     void loop();
+
+    // Controllers
+    MinimumMotionController mm_ctrl;
+    TensionMaintenanceController tension_ctrl;
+    RetensioningController retension_ctrl;
 
     // Position Variables
     Point3D origin = {0.0,0.0,0.0};

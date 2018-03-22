@@ -19,7 +19,7 @@ Winch::Winch(int index, int encA, int encB, int motorIn1, int motorIn2, int moto
         WinchDriver(encA, encB, motorIn1, motorIn2, motorPwm, motorOffset, motorStby,
                     scale_dout, scale_sck, scale_offset),
         pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
-        index(index)
+        index(index), mm_ctrl(*this), tension_ctrl(*this), retension_ctrl(*this, tension_ctrl)
 {
 
 }
@@ -28,7 +28,7 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
                          ScaleParams scale_p, FilterParams filter_p):
         WinchDriver(enc_p, motor_p, scale_p),
         pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
-        index(index)
+        index(index), mm_ctrl(*this), tension_ctrl(*this), retension_ctrl(*this, tension_ctrl)
 {
 
 }
@@ -37,7 +37,7 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
                          ScaleParams scale_p, FilterParams filter_p, PositionParams pos_p):
         WinchDriver(enc_p, motor_p, scale_p),
         pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
-        index(index)
+        index(index), mm_ctrl(*this), tension_ctrl(*this), retension_ctrl(*this, tension_ctrl)
 {
     origin.x = pos_p.origin.x;
     origin.y = pos_p.origin.y;

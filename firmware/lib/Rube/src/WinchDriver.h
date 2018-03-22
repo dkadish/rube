@@ -11,9 +11,6 @@
 #include <HX711.h>
 #include <elapsedMillis.h>
 
-#define STOP 0
-#define GO 1
-
 struct EncoderParams {
     int A;
     int B;
@@ -35,6 +32,48 @@ struct ScaleParams {
 
 class WinchDriver {
 
+public:
+    WinchDriver(int encA, int encB,
+                int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
+                int scale_dout, int scale_sck, long scale_offset
+                //float positionKp, float speedKp, float speedKi
+    );
+
+    WinchDriver(EncoderParams enc_p, MotorParams motor_p,
+                ScaleParams scale_p
+                //FilterParams filter_p
+    );
+
+    WinchDriver();
+
+    enum State {
+        STOP,
+        GO
+    };
+
+    Motor motor;
+    // Encoder
+    Encoder* enc;
+    // Scale
+    HX711 scale;
+    long scale_offset;
+
+    void setup();
+
+    int signal = 0;
+
+    void loop();
+
+    // Control functions
+    void stop();
+    void go();
+    void go_signal(int signal);
+    void setSignal(int signal);
+
+    // Winch Functions
+    bool isUnderTension();
+
+private:
     // Setup functions
     void motor_setup();
 
@@ -51,7 +90,7 @@ class WinchDriver {
 
     void comm_loop();
 
-    int stop_go = STOP; // Is it in stop mode or go mode
+    State stop_go = State::STOP ; // Is it in stop mode or go mode
 
     int encA, encB; /**< Pins for the magnetic encoder readings */
     double enc_pos; // Encoder position, in revolutions. 1 rev = 1.0.
@@ -75,41 +114,6 @@ class WinchDriver {
     long printTimer = 0;
 
     float tension; // Stores the tension on the line. Updated in loop. Measured in no particular unit at the moment.
-
-public:
-    WinchDriver(int encA, int encB,
-                int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
-                int scale_dout, int scale_sck, long scale_offset
-                //float positionKp, float speedKp, float speedKi
-    );
-
-    WinchDriver(EncoderParams enc_p, MotorParams motor_p,
-                ScaleParams scale_p
-                //FilterParams filter_p
-    );
-
-    WinchDriver();
-
-    Motor motor;
-    // Encoder
-    Encoder* enc;
-    // Scale
-    HX711 scale;
-    long scale_offset;
-
-    void setup();
-
-    int signal = 0;
-
-    void loop();
-
-    // Control functions
-    void stop();
-    void go();
-    void go_signal(int signal);
-
-    // Winch Functions
-    bool isUnderTension();
 };
 
 
