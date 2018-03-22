@@ -54,6 +54,7 @@ void doTensionLine(int winch_i);
 void doRelaxLine(int winch_i);
 void doRampUp(int winch_i, int ms);
 void doRampDown(int winch_i, int ms);
+void _doRamp(int winch_i, int ms);
 
 int decimalDigits(float number);
 

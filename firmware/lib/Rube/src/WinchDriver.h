@@ -69,6 +69,7 @@ public:
     void go();
     void go_signal(int signal);
     void setSignal(int signal);
+    int getSignal(){ return signal; }
 
     // Winch Functions
     bool isUnderTension();
