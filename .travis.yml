@@ -59,19 +59,19 @@ branches:
          - "~/.platformio"
 
  env:
-#     - PLATFORMIO_CI_SRC=path/to/test/file.c
+ #     - PLATFORMIO_CI_SRC=path/to/test/file.c
      - PLATFORMIO_CI_SRC=firmware/lib/Rube/examples/Basic/Basic.cpp
      - PLATFORMIO_CI_SRC=firmware/lib/Rube/src
-  global:
+   global:
      - PRETTYNAME="RUBE Robotic Urban Building Environment"
      - GH_REPO_NAME: rube
      - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
      - GH_REPO_REF: github.com/dkadish/rube.git
 
-# Install dependencies
-addons:
-  apt:
-    packages:
+ # Install dependencies
+ addons:
+   apt:
+     packages:
       - doxygen
       - doxygen-doc
       - doxygen-latex
@@ -85,8 +85,8 @@ addons:
  script:
      - platformio ci --lib="./firmware/lib/Rube/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
 
-# Generate and deploy documentation
-after_success:
-  - cd $TRAVIS_BUILD_DIR
-  - chmod +x generateDocumentationAndDeploy.sh
-  - ./generateDocumentationAndDeploy.sh
+ # Generate and deploy documentation
+ after_success:
+     - cd $TRAVIS_BUILD_DIR
+     - chmod +x generateDocumentationAndDeploy.sh
+     - ./generateDocumentationAndDeploy.sh
