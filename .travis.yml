@@ -44,49 +44,49 @@
 # Template #2: The project is intended to by used as a library with examples
 #
 
- language: python
- python:
-     - "2.7"
+language: python
+python:
+    - "2.7"
 
 # Blacklist
 branches:
-  except:
-    - gh-pages
+ except:
+   - gh-pages
 
- sudo: false
- cache:
-     directories:
-         - "~/.platformio"
+sudo: false
+cache:
+    directories:
+        - "~/.platformio"
 
- env:
- #     - PLATFORMIO_CI_SRC=path/to/test/file.c
-     - PLATFORMIO_CI_SRC=firmware/lib/Rube/examples/Basic/Basic.cpp
-     - PLATFORMIO_CI_SRC=firmware/lib/Rube/src
-   global:
-     - PRETTYNAME="RUBE Robotic Urban Building Environment"
-     - GH_REPO_NAME: rube
-     - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
-     - GH_REPO_REF: github.com/dkadish/rube.git
+env:
+  global:
+    - PRETTYNAME="RUBE Robotic Urban Building Environment"
+    - GH_REPO_NAME: rube
+    - DOXYFILE: $TRAVIS_BUILD_DIR/Doxyfile
+    - GH_REPO_REF: github.com/dkadish/rube.git
+#     - PLATFORMIO_CI_SRC=path/to/test/file.c
+    - PLATFORMIO_CI_SRC=firmware/lib/Rube/examples/Basic/Basic.cpp
+    - PLATFORMIO_CI_SRC=firmware/lib/Rube/src
 
- # Install dependencies
- addons:
-   apt:
-     packages:
-      - doxygen
-      - doxygen-doc
-      - doxygen-latex
-      - doxygen-gui
-      - graphviz
+# Install dependencies
+addons:
+  apt:
+    packages:
+     - doxygen
+     - doxygen-doc
+     - doxygen-latex
+     - doxygen-gui
+     - graphviz
 
- install:
-     - pip install -U platformio
-     - platformio update
+install:
+    - pip install -U platformio
+    - platformio update
 
- script:
-     - platformio ci --lib="./firmware/lib/Rube/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
+script:
+    - platformio ci --lib="./firmware/lib/Rube/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
 
- # Generate and deploy documentation
- after_success:
-     - cd $TRAVIS_BUILD_DIR
-     - chmod +x generateDocumentationAndDeploy.sh
-     - ./generateDocumentationAndDeploy.sh
+# Generate and deploy documentation
+after_success:
+    - cd $TRAVIS_BUILD_DIR
+    - chmod +x generateDocumentationAndDeploy.sh
+    - ./generateDocumentationAndDeploy.sh
