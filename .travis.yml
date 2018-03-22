@@ -82,13 +82,9 @@ install:
 
 script:
     - platformio ci --lib="./firmware/lib/Rube/src/" --project-conf="./firmware/lib/Rube/platformio.ini" --board=teensy36
-    - doxygen Doxyfile
 
-# Deploy using travis builtin GitHub Pages support
-deploy:
-  provider: pages
-  skip_cleanup: true
-  local_dir: $TRAVIS_BUILD_DIR/html
-  github_token: $GH_REPO_TOKEN
-  on:
-    all-branches: true
+# Generate and deploy documentation
+after_success:
+    - cd $TRAVIS_BUILD_DIR
+    - chmod +x generateDocumentationAndDeploy.sh
+    - ./generateDocumentationAndDeploy.sh
