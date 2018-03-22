@@ -48,11 +48,22 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
 void Winch::setup() {
     WinchDriver::setup();
 
+    for(int i=0; i<n_controllers; i++){
+        controllers[i].setup();
+    }
+
+    // Tension control is on by default
+    tension_ctrl.start();
+
     pid_setup();
 }
 
 void Winch::loop() {
     WinchDriver::loop();
+
+    for(int i=0; i<n_controllers; i++){
+        controllers[i].loop();
+    }
 
     pid_loop();
 }
@@ -80,6 +91,17 @@ void Winch::pid_setup() {
 
 void Winch::pid_loop() {
 
+}
+
+/** Stop all motion. Ends all controllers and engages tension control.
+ *
+ */
+void Winch::doStop() {
+    for(int i=0; i<n_controllers; i++){
+        controllers[i].end();
+    }
+
+    tension_ctrl.start();
 }
 
 

@@ -80,6 +80,16 @@ public:
     TensionMaintenanceController tension_ctrl;
     RetensioningController retension_ctrl;
 
+    Controller controllers[] = {mm_ctrl, tension_ctrl, retension_ctrl};
+    const int n_controllers = 3;
+
+    // Motion commands
+    void doRetension(){ retension_ctrl.start(); }
+    void doSlowUp(){ mm_ctrl.setDirection(true); mm_ctrl.start(); }
+    void doSlowDown(){ mm_ctrl.setDirection(false); mm_ctrl.start(); }
+    void doStop();
+
+
     // Position Variables
     Point3D origin = {0.0,0.0,0.0};
     double startLength = 0.0;
