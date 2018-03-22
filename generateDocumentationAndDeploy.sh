@@ -40,12 +40,14 @@ echo 'Setting up the script...'
 set -e
 
 # Create a clean working directory for this script.
+cd ../
 mkdir code_docs
 cd code_docs
 
 # Get the current gh-pages branch
 git clone -b gh-pages https://${GH_REPO_TOKEN}@${GH_REPO_REF}
 cd $GH_REPO_NAME
+DOCS_DIR=${TRAVIS_BUILD_DIR}"/../code_docs/"${GH_REPO_NAME}
 
 ##### Configure git.
 # Set the push default to simple i.e. push only the current branch.
@@ -71,8 +73,13 @@ echo "" > .nojekyll
 ##### Generate the Doxygen code documentation and log the output.          #####
 echo 'Generating Doxygen code documentation...'
 # Redirect both stderr and stdout to the log file AND the con
-pwd
-doxygen $DOXYFILE 2>&1 | tee doxygen.log
+cd $TRAVIS_BUILD_DIR
+doxygen $DOXYFILE 2>&1 | tee ${DOCS_DIR}/doxygen.log
+mv html ${DOCS_DIR}/
+cd $DOCS_DIR
+
+echo $TRAVIS_BUILD_DIR
+echo $DOCS_DIR
 
 ################################################################################
 ##### Upload the documentation to the gh-pages branch of the repository.   #####
