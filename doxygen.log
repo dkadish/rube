@@ -11,5 +11,161 @@ Warning: ignoring unsupported tag `DOCBOOK_PROGRAMLISTING =' at line 1993, file 
 Warning: ignoring unsupported tag `PLANTUML_JAR_PATH      =' at line 2422, file /home/travis/build/dkadish/rube/Doxyfile
 Warning: ignoring unsupported tag `PLANTUML_CFG_FILE      =' at line 2427, file /home/travis/build/dkadish/rube/Doxyfile
 Warning: ignoring unsupported tag `PLANTUML_INCLUDE_PATH  =' at line 2432, file /home/travis/build/dkadish/rube/Doxyfile
-Warning: tag INPUT: input source `firmware/lib/Rube/src' does not exist
-warning: source firmware/lib/Rube/src is not a readable file or directory... skipping.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:50: warning: Compound FilterParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:14: warning: Compound EncoderParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:13: warning: Compound WinchController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:36: warning: Compound TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:19: warning: Compound MotorParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Altimeter.h:11: warning: Compound Altimeter is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:82: warning: Compound Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Geometry.h:8: warning: Compound Point3D is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:53: warning: Compound RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:48: warning: Compound WinchGeometry is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:27: warning: Compound ScaleParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/SDLogger.h:11: warning: Compound SDLogger is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:56: warning: Compound Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:45: warning: Compound PositionParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:33: warning: Compound WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:9: warning: Compound Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:24: warning: Compound MinimumMotionController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Altimeter.h:13: warning: Member Altimeter(i2c_t3 *wire) (function) of class Altimeter is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Altimeter.h:15: warning: Member setup() (function) of class Altimeter is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Altimeter.h:16: warning: Member loop() (function) of class Altimeter is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Altimeter.h:18: warning: Member altimeter (variable) of class Altimeter is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Altimeter.h:19: warning: Member altitude_m (variable) of class Altimeter is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:12: warning: Member setup()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:13: warning: Member loop()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:16: warning: Member start()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:17: warning: Member end()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:20: warning: Member enabled (variable) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:15: warning: Member A (variable) of class EncoderParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:16: warning: Member B (variable) of class EncoderParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:51: warning: Member positionKp (variable) of class FilterParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:52: warning: Member speedKp (variable) of class FilterParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:53: warning: Member speedKi (variable) of class FilterParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:36: warning: Member Status (enumeration) of class MinimumMotionController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:26: warning: Member MinimumMotionController(WinchDriver &winchDriver) (function) of class MinimumMotionController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:41: warning: Member getStatus() (function) of class MinimumMotionController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:20: warning: Member in1 (variable) of class MotorParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:21: warning: Member in2 (variable) of class MotorParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:22: warning: Member pwm (variable) of class MotorParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:23: warning: Member offset (variable) of class MotorParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:24: warning: Member standby (variable) of class MotorParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Geometry.h:9: warning: Member x (variable) of class Point3D is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Geometry.h:10: warning: Member y (variable) of class Point3D is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Geometry.h:11: warning: Member z (variable) of class Point3D is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:46: warning: Member origin (variable) of class PositionParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:47: warning: Member length (variable) of class PositionParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:81: warning: Member RetensioningController(WinchDriver &winchDriver, TensionMaintenanceController &tension) (function) of class RetensioningController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:84: warning: Member setup() (function) of class RetensioningController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:97: warning: Member getPosition(Point3D &position) (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:98: warning: Member getX() (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:99: warning: Member getY() (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:100: warning: Member getZ() (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:102: warning: Member setPositionTarget(Point3D &position) (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:103: warning: Member setXTarget(double x) (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:104: warning: Member setYTarget(double y) (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:105: warning: Member setZTarget(double z) (function) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:89: warning: Member O (variable) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:89: warning: Member P (variable) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:89: warning: Member Q (variable) of class Robot is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:74: warning: Member CalibrateInitialPosition(RobotSetupParameters params) (function) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:75: warning: Member CalculateLines(float x, float y, float z) (function) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:76: warning: Member CalculateLines(Point3D xyz) (function) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:79: warning: Member update() (function) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:58: warning: Member mount_height (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:60: warning: Member lineLengths (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:61: warning: Member lineLengthSetpoints (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:64: warning: Member Q (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:67: warning: Member setpoint (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:70: warning: Member R (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:72: warning: Member winches[3] (variable) of class RobotPosition is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.cpp:90: warning: parameters of member RobotPosition::CalculateXYZ are not (all) documented
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.cpp:90: warning: return type of member RobotPosition::CalculateXYZ is not documented
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:28: warning: Member dout (variable) of class ScaleParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:29: warning: Member sck (variable) of class ScaleParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:30: warning: Member offset (variable) of class ScaleParams is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/SDLogger.h:14: warning: Member SDLogger(String(*logFunction)()) (function) of class SDLogger is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/SDLogger.h:16: warning: Member setChipSelect(int cs) (function) of class SDLogger is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/SDLogger.h:18: warning: Member setup() (function) of class SDLogger is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/SDLogger.h:19: warning: Member loop() (function) of class SDLogger is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/SDLogger.h:21: warning: Member enabled (variable) of class SDLogger is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:59: warning: Member TensionMaintenanceController(WinchDriver &winchDriver) (function) of class TensionMaintenanceController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:61: warning: Member setup() (function) of class TensionMaintenanceController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:55: warning: found paragraph command outside of subsubsection context!
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:38: warning: Member OP (variable) of class TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:39: warning: Member PQ (variable) of class TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:40: warning: Member OQ (variable) of class TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:43: warning: Member OR (variable) of class TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:44: warning: Member PR (variable) of class TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:45: warning: Member QR (variable) of class TetrahedronLengths is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:62: warning: Member Winch(int index, int encA, int encB, int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby, int scale_dout, int scale_sck, long scale_offset, float positionKp, float speedKp, float speedKi) (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:68: warning: Member Winch(int index, EncoderParams enc_p, MotorParams motor_p, ScaleParams scale_p, FilterParams filter_p) (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:71: warning: Member Winch(int index, EncoderParams enc_p, MotorParams motor_p, ScaleParams scale_p, FilterParams filter_p, PositionParams pos_p) (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:75: warning: Member setup() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:76: warning: Member loop() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:86: warning: Member getLength() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:99: warning: Member go_signal(int signal) (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:100: warning: Member stop() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:101: warning: Member go() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:103: warning: Member pid_loop() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:105: warning: Member pid_setup() (function) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:36: warning: Member WinchDriver(int encA, int encB, int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby, int scale_dout, int scale_sck, long scale_offset) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:42: warning: Member WinchDriver(EncoderParams enc_p, MotorParams motor_p, ScaleParams scale_p) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:61: warning: Member setup() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:65: warning: Member loop() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:68: warning: Member stop() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:69: warning: Member go() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:70: warning: Member go_signal(int signal) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:71: warning: Member setSignal(int signal) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:74: warning: Member isUnderTension() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:79: warning: Member mm_ctrl (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:80: warning: Member tension_ctrl (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:81: warning: Member retension_ctrl (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:84: warning: Member origin (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:85: warning: Member startLength (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:89: warning: Member cycles (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:90: warning: Member index (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:93: warning: Member offset (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:96: warning: Member control_mode (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:108: warning: Member pos_Kp (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:111: warning: Member pos_in (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:114: warning: Member pos_out (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:117: warning: Member pos_setpt (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:119: warning: Member position (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:121: warning: Member spd_Ki (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:123: warning: Member spd_Kp (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:124: warning: Member spd_in (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:125: warning: Member spd_out (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:126: warning: Member speed (variable) of class Winch is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:54: warning: Member motor (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:56: warning: Member enc (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:58: warning: Member scale (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:59: warning: Member scale_offset (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:63: warning: Member signal (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:49: warning: Member State (enumeration) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Winch.h:98: warning: return type of member Winch::current_position is not documented
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:15: warning: Member WinchController(WinchDriver &winchDriver) (function) of class WinchController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchController.h:21: warning: Member winchDriver (variable) of class WinchController is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:20: warning: Member enabled (variable) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:12: warning: Member setup()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:13: warning: Member loop()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:16: warning: Member start()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/Controller.h:17: warning: Member end()=0 (function) of class Controller is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:49: warning: Member State (enumeration) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:36: warning: Member WinchDriver(int encA, int encB, int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby, int scale_dout, int scale_sck, long scale_offset) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:42: warning: Member WinchDriver(EncoderParams enc_p, MotorParams motor_p, ScaleParams scale_p) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:61: warning: Member setup() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:65: warning: Member loop() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:68: warning: Member stop() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:69: warning: Member go() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:70: warning: Member go_signal(int signal) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:71: warning: Member setSignal(int signal) (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:74: warning: Member isUnderTension() (function) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:54: warning: Member motor (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:56: warning: Member enc (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:58: warning: Member scale (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:59: warning: Member scale_offset (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/WinchDriver.h:63: warning: Member signal (variable) of class WinchDriver is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:49: warning: Member origin (variable) of class WinchGeometry is not documented.
+/home/travis/build/dkadish/rube/firmware/lib/Rube/src/robot.h:50: warning: Member length (variable) of class WinchGeometry is not documented.
