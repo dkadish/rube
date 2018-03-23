@@ -8,7 +8,7 @@
 #ifdef LOGGING
 
 #if LOGGING >= 1
-    #define FATAL(str) \
+    #define FATAL(str, ...) \
        Serial.print("FATAL ("); \
        Serial.print(millis()); \
        Serial.print(" ms): "); \
@@ -18,10 +18,11 @@
        Serial.print(':'); \
        Serial.print(__LINE__); \
        Serial.print(' '); \
-       Serial.println(str);
+       Serial.printf(str, ##__VA_ARGS__); \
+       Serial.println();
 #endif
 #if LOGGING >= 2
-    #define ERROR(str) \
+    #define ERROR(str, ...) \
        Serial.print("ERROR ("); \
        Serial.print(millis()); \
        Serial.print(" ms): "); \
@@ -31,10 +32,11 @@
        Serial.print(':'); \
        Serial.print(__LINE__); \
        Serial.print(' '); \
-       Serial.println(str);
+       Serial.printf(str, ##__VA_ARGS__); \
+       Serial.println();
 #endif
 #if LOGGING >= 3
-    #define WARNING(str) \
+    #define WARNING(str, ...) \
        Serial.print("WARNING ("); \
        Serial.print(millis()); \
        Serial.print(" ms): "); \
@@ -44,10 +46,11 @@
        Serial.print(':'); \
        Serial.print(__LINE__); \
        Serial.print(' '); \
-       Serial.println(str);
+       Serial.printf(str, ##__VA_ARGS__); \
+       Serial.println();
 #endif
 #if LOGGING >= 4
-    #define INFO(str) \
+    #define INFO(str, ...) \
        Serial.print("INFO ("); \
        Serial.print(millis()); \
        Serial.print(" ms): "); \
@@ -57,10 +60,11 @@
        Serial.print(':'); \
        Serial.print(__LINE__); \
        Serial.print(' '); \
-       Serial.println(str);
+       Serial.printf(str, ##__VA_ARGS__); \
+       Serial.println();
 #endif
 #if LOGGING >= 5
-    #define DEBUG(str) \
+    #define DEBUG(str, ...) \
        Serial.print("DEBUG ("); \
        Serial.print(millis()); \
        Serial.print(" ms): "); \
@@ -70,10 +74,11 @@
        Serial.print(':'); \
        Serial.print(__LINE__); \
        Serial.print(' '); \
-       Serial.println(str);
+       Serial.printf(str, ##__VA_ARGS__); \
+       Serial.println();
 #endif
 #if LOGGING >= 6
-    #define TRACE(str) \
+    #define TRACE(str, ...) \
        Serial.print("TRACE ("); \
        Serial.print(millis()); \
        Serial.print(" ms): "); \
@@ -83,28 +88,29 @@
        Serial.print(':'); \
        Serial.print(__LINE__); \
        Serial.print(' '); \
-       Serial.println(str);
+       Serial.printf(str, ##__VA_ARGS__); \
+       Serial.println();
 #endif
 
 #endif
 
 #ifndef FATAL
-    #define FATAL(str)
+    #define FATAL(str, ...)
 #endif
 #ifndef ERROR
-    #define ERROR(str)
+    #define ERROR(str, ...)
 #endif
 #ifndef WARNING
-    #define WARNING(str)
+    #define WARNING(str, ...)
 #endif
 #ifndef INFO
-    #define INFO(str)
+    #define INFO(str, ...)
 #endif
 #ifndef DEBUG
-    #define DEBUG(str)
+    #define DEBUG(str, ...)
 #endif
 #ifndef TRACE
-    #define TRACE(str)
+    #define TRACE(str, ...)
 #endif
 
 #endif //RUBE_LOGGING_H
