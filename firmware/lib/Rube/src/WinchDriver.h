@@ -73,6 +73,13 @@ public:
 
     // Winch Functions
     bool isUnderTension();
+    float getTension(){ return tension; }
+
+    //TODO: Should not be getting from estimate here and from tracker in Winch
+    float getPosition(){ return pos_est; }
+    float getEncoderTurns(){ return enc_pos; }
+    long getEncoderTicks(){ return enc->read(); }
+    float getSpeed(){ return spd_est; }
 
 private:
     // Setup functions

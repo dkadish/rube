@@ -7,10 +7,11 @@
 
 #include "Controller.h"
 #include "WinchDriver.h"
+#include "logging.h"
 
 #include <elapsedMillis.h>
 
-class WinchController: protected Controller {
+class WinchController: public Controller {
 public:
     WinchController(WinchDriver &winchDriver);
 
@@ -19,9 +20,10 @@ public:
 
 protected:
     WinchDriver &winchDriver;
+    //bool enabled = false;
 };
 
-class MinimumMotionController: WinchController {
+class MinimumMotionController: public WinchController {
 public:
     MinimumMotionController(WinchDriver &winchDriver);
 
@@ -33,20 +35,12 @@ public:
 
     void setDirection(bool positive);
 
-    enum Status {
-        STOPPED,
-        RUNNING,
-    };
-
-    Status getStatus();
-
 private:
     bool direction_positive;
     elapsedMillis rampTimer;
     int level;
-    long lastPositioningTime;
+    unsigned long lastPositioningTime;
     long lastPosition;
-    Status status;
 };
 
 /** Ensures that the winch is kept under tension, otherwise ceases all motion.
@@ -54,7 +48,7 @@ private:
  *  @paragraph When the TensionMaintenanceController isEnabled, it will set the
  *      WinchDriver::stop_go to STOP if the line loses tension.
  */
-class TensionMaintenanceController: WinchController {
+class TensionMaintenanceController: public WinchController {
 public:
     TensionMaintenanceController(WinchDriver &winchDriver) : WinchController(winchDriver) {}
 
@@ -63,11 +57,13 @@ public:
 
     /** Run before each invocation of TensionController */
     virtual void start() {
+        INFO("Starting Tension Controller.");
         enabled = true;
     }
 
     /** Run at the end of each invocation of TensionController */
     virtual void end() {
+        INFO("Ending Tension Controller.");
         enabled = false;
     }
 };
@@ -76,7 +72,7 @@ public:
 /** Returns the robot to tension when not under tension.
  *
  */
-class RetensioningController: WinchController {
+class RetensioningController: public WinchController {
 public:
     RetensioningController(WinchDriver &winchDriver, TensionMaintenanceController &tension) :
             WinchController(winchDriver), tensioner(tension) {}

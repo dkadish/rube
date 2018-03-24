@@ -16,8 +16,10 @@ public:
     virtual void start() = 0;
     virtual void end() = 0;
 
+    bool isEnabled(){ return enabled; }
+
 protected:
-    bool enabled;
+    bool enabled = false;
 };
 
 

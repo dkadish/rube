@@ -167,7 +167,6 @@ void WinchDriver::setSignal(int s) {
 
 void WinchDriver::stop(){ // remove integral windup here
     stop_go = STOP;
-
     motor.brake();
 }
 

@@ -7,7 +7,9 @@
 #include "Winch.h"
 #include "WinchDriver.h"
 #include "rube_config.h"
+#include "logging.h"
 
+#include <Arduino.h>
 #include <PID_v1.h>
 #include <elapsedMillis.h>
 
@@ -16,29 +18,37 @@
 
 Winch::Winch(int index, int encA, int encB, int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
              int scale_dout, int scale_sck, long scale_offset, float positionKp, float speedKp, float speedKi):
-        WinchDriver(encA, encB, motorIn1, motorIn2, motorPwm, motorOffset, motorStby,
+        driver(encA, encB, motorIn1, motorIn2, motorPwm, motorOffset, motorStby,
                     scale_dout, scale_sck, scale_offset),
         pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
-        index(index), mm_ctrl(*this), tension_ctrl(*this), retension_ctrl(*this, tension_ctrl)
+        index(index), mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
 {
-
+    controllers[0] = &mm_ctrl;
+    controllers[1] = &tension_ctrl;
+    controllers[2] = &retension_ctrl;
 }
 
 Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
                          ScaleParams scale_p, FilterParams filter_p):
-        WinchDriver(enc_p, motor_p, scale_p),
+        driver(enc_p, motor_p, scale_p),
         pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
-        index(index), mm_ctrl(*this), tension_ctrl(*this), retension_ctrl(*this, tension_ctrl)
+        index(index), mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
 {
-
+    controllers[0] = &mm_ctrl;
+    controllers[1] = &tension_ctrl;
+    controllers[2] = &retension_ctrl;
 }
 
 Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
                          ScaleParams scale_p, FilterParams filter_p, PositionParams pos_p):
-        WinchDriver(enc_p, motor_p, scale_p),
+        driver(enc_p, motor_p, scale_p),
         pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
-        index(index), mm_ctrl(*this), tension_ctrl(*this), retension_ctrl(*this, tension_ctrl)
+        index(index), mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
 {
+    controllers[0] = &mm_ctrl;
+    controllers[1] = &tension_ctrl;
+    controllers[2] = &retension_ctrl;
+
     origin.x = pos_p.origin.x;
     origin.y = pos_p.origin.y;
     origin.z = pos_p.origin.z;
@@ -46,10 +56,13 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
 }
 
 void Winch::setup() {
-    WinchDriver::setup();
+    INFO("Setting Up Driver")
+    driver.setup();
 
+    INFO("Setting Up Controllers")
     for(int i=0; i<n_controllers; i++){
-        controllers[i].setup();
+        INFO("Setting Up Controller")
+        controllers[i]->setup();
     }
 
     // Tension control is on by default
@@ -59,22 +72,40 @@ void Winch::setup() {
 }
 
 void Winch::loop() {
-    WinchDriver::loop();
+    driver.loop();
+
+    if(printTimer > 250){
+        INFO("Controllers: 0 (%i/%i), 1 (%i/%i), 2 (%i/%i)\n",
+             controllers[0]->isEnabled(), mm_ctrl.isEnabled(),
+             controllers[1]->isEnabled(), tension_ctrl.isEnabled(),
+             controllers[2]->isEnabled(), retension_ctrl.isEnabled());
+        printTimer = 0;
+    }
 
     for(int i=0; i<n_controllers; i++){
-        controllers[i].loop();
+        controllers[i]->loop();
+        /*if(controllers[i]->isEnabled()){
+            INFO("Controller %i is enabled.", i);
+        }*/
     }
+
+    /*if(mm_ctrl.isEnabled()){
+        INFO("mm_ctrl is enabled.");
+    }
+    if(tension_ctrl.isEnabled()){
+        INFO("tension_ctrl is enabled.");
+    }*/
 
     pid_loop();
 }
 
-double Winch::current_position() {
-    return ((double)enc->read())/TICKS_PER_REVOLUTION;
+float Winch::getPosition() {
+    return driver.getEncoderTurns()*METRES_PER_REVOLUTION;
 }
 
 
-double Winch::getLength() {
-    return startLength - current_position()*METRES_PER_REVOLUTION;
+float Winch::getLength() {
+    return startLength - getPosition();
 }
 
 void Winch::pid_setup() {
@@ -98,8 +129,10 @@ void Winch::pid_loop() {
  */
 void Winch::doStop() {
     for(int i=0; i<n_controllers; i++){
-        controllers[i].end();
+        controllers[i]->end();
     }
+
+    driver.stop();
 
     tension_ctrl.start();
 }

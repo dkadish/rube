@@ -53,9 +53,13 @@ struct FilterParams {
     double speedKi;
 };
 
-class Winch : public WinchDriver {
+//FIXME: Winch should not INHERIT WinchDriver. It should HAVE a WinchDriver.
+class Winch {
 
     double spd_setpt;
+    WinchDriver driver;
+
+    elapsedMillis printTimer=0;
 
 public:
 
@@ -80,8 +84,8 @@ public:
     TensionMaintenanceController tension_ctrl;
     RetensioningController retension_ctrl;
 
-    Controller controllers[] = {mm_ctrl, tension_ctrl, retension_ctrl};
-    const int n_controllers = 3;
+    const static int n_controllers = 3;
+    Controller *controllers[n_controllers]; // = {&mm_ctrl, &tension_ctrl, &retension_ctrl};
 
     // Motion commands
     void doRetension(){ retension_ctrl.start(); }
@@ -89,11 +93,10 @@ public:
     void doSlowDown(){ mm_ctrl.setDirection(false); mm_ctrl.start(); }
     void doStop();
 
-
     // Position Variables
     Point3D origin = {0.0,0.0,0.0};
     double startLength = 0.0;
-    double getLength();
+    float getLength();
 
     // Internal Variables
     int cycles;
@@ -105,10 +108,7 @@ public:
 
     int control_mode = POSITION; // Is it position- or speed-controlled
 
-    double current_position(); /**< Current position in number of revolutions */
-    void go_signal(int signal);
-    void stop();
-    void go();
+    float getPosition(); /**< Current position in distance from start */
 
     void pid_loop();
 
@@ -134,6 +134,26 @@ public:
     double spd_in;
     double spd_out;
     PID * speed;
+
+    float getSpeed(){ driver.getSpeed(); }
+    int getSignal(){ driver.getSignal(); }
+
+    //*** Driver access functions ***//
+    // Scale
+    void scaleTare(){ driver.scale.tare(10); } /**< Zero the scale */
+    long getScaleOffset(){ return driver.scale.get_offset(); } /**< Get the offset from a tared scale */
+
+    // Encoder
+    long getEncoderTicks(){ return driver.getEncoderTicks(); } /**< Get the number of ticks of the quadrature encoder */
+
+    // Tension
+    bool isUnderTension(){ return driver.isUnderTension(); }; /**< Check if the winch is under tension. */
+    float getTension(){ return driver.getTension(); } /**< Get the current tension value */
+
+    // Motor
+    void doGo(){ driver.go(); };
+    void doGo(int signal){ driver.go_signal(signal); };
+
 };
 
 #endif //FIRMWARE_WINCH_H

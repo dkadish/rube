@@ -28,8 +28,8 @@ Winch winches[] = {A, B, C};
 const int N_WINCHES = 3;
 
 // Communication
-Stream* cmdSerial=&Serial1; // Commands sent to the robot
-Stream* msgSerial=&Serial1; // Messages from the robot
+Stream* cmdSerial=&Serial; // Commands sent to the robot
+Stream* msgSerial=&Serial; // Messages from the robot
 Stream* datSerial=&Serial; // Data logs from the robot
 Stream* logSerial=&Serial; // Log messages from the
 
@@ -48,7 +48,7 @@ void tareScales();
 // Winch Manual Control Functions
 void doWinchStop(int winch_i);
 void doSetWinchSignal(int winch_i, int signal);
-void doSetWinchPositionSetpoint(int winch_i, float position);
+//void doSetWinchPositionSetpoint(int winch_i, float position);
 void doDisplayWinchState(int winch_i);
 void doTensionLine(int winch_i);
 void doRelaxLine(int winch_i);
