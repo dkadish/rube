@@ -23,9 +23,7 @@ Winch::Winch(int index, int encA, int encB, int motorIn1, int motorIn2, int moto
         pos_Kp(positionKp), spd_Kp(speedKp), spd_Ki(speedKi),
         index(index), mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
 {
-    controllers[0] = &mm_ctrl;
-    controllers[1] = &tension_ctrl;
-    controllers[2] = &retension_ctrl;
+
 }
 
 Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
@@ -34,9 +32,6 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
         pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
         index(index), mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
 {
-    controllers[0] = &mm_ctrl;
-    controllers[1] = &tension_ctrl;
-    controllers[2] = &retension_ctrl;
 }
 
 Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
@@ -45,10 +40,6 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
         pos_Kp(filter_p.positionKp), spd_Kp(filter_p.speedKp), spd_Ki(filter_p.speedKi),
         index(index), mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
 {
-    controllers[0] = &mm_ctrl;
-    controllers[1] = &tension_ctrl;
-    controllers[2] = &retension_ctrl;
-
     origin.x = pos_p.origin.x;
     origin.y = pos_p.origin.y;
     origin.z = pos_p.origin.z;
@@ -56,6 +47,10 @@ Winch::Winch(int index, EncoderParams enc_p, MotorParams motor_p,
 }
 
 void Winch::setup() {
+    controllers[0] = &mm_ctrl;
+    controllers[1] = &tension_ctrl;
+    controllers[2] = &retension_ctrl;
+
     INFO("Setting Up Driver")
     driver.setup();
 
@@ -79,6 +74,12 @@ void Winch::loop() {
              controllers[0]->isEnabled(), mm_ctrl.isEnabled(),
              controllers[1]->isEnabled(), tension_ctrl.isEnabled(),
              controllers[2]->isEnabled(), retension_ctrl.isEnabled());
+
+        INFO("Controller Addresses: 0 (%ld/%ld), 1 (%ld/%ld), 2 (%ld/%ld)\n",
+             (long)(controllers[0]), (long)(&mm_ctrl),
+             (long)(controllers[1]), (long)(&tension_ctrl),
+             (long)(controllers[2]), (long)(&retension_ctrl));
+
         printTimer = 0;
     }
 
