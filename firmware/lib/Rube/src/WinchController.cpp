@@ -28,10 +28,8 @@ void MinimumMotionController::setup() {
 void MinimumMotionController::loop() {
 
     if(enabled) {
-        INFO("MM: Enabled.");
         // Raise the level every once in a while IF it has not moved since last time.
         if (rampTimer / 5 > lastPositioningTime) {
-            INFO("MM: Time Check.");
             lastPositioningTime++;
             long winchPos = winchDriver.getEncoderTicks();
 
@@ -63,17 +61,11 @@ void MinimumMotionController::start() {
 
     winchDriver.setSignal(level);
     winchDriver.go();
-
-    //FIXME: Enabled true here
-    INFO("Minimum Motion is enabled %i %i %i %i", enabled ? 1 : 0, isEnabled() ? 1 : 0, Controller::enabled ? 1 : 0, Controller::isEnabled() ? 1 : 0);
 }
 
 void MinimumMotionController::end() {
     INFO("Minimum Motion is ending");
     enabled = false;
-
-    //FIXME: Enabled false here
-    INFO("Minimum Motion is enabled %i %i %i %i", enabled ? 1 : 0, isEnabled() ? 1 : 0, Controller::enabled ? 1 : 0, Controller::isEnabled() ? 1 : 0);
 }
 
 /** Set the direction of motion.
@@ -89,6 +81,12 @@ void TensionMaintenanceController::loop() {
         if (!winchDriver.isUnderTension()){
             winchDriver.setSignal(0);
             winchDriver.stop();
+
+            // Check to see if this is the beginning of a lost tension event.
+            if(lastLoopTension){
+                lostTensionEvent = true;
+            }
+            lastLoopTension = false;
         }
     }
 }
@@ -102,4 +100,60 @@ void RetensioningController::loop() {
             end();
         }
     }
+}
+
+void PIDPositionController::setup(){
+    position = new PID(&in, &out, &setpoint, Kp, Ki, Kd, REVERSE);
+    position->SetOutputLimits(MOTOR_LOWER_LIMIT, MOTOR_UPPER_LIMIT);
+
+    INFO("Started PID Controller with: Kp=%i, Ki=%i, Kd=%i",
+         (int)Kp, (int)Ki, (int)Kd);
+
+    // Start off by default
+    PIDPositionController::end();
+}
+
+void PIDPositionController::loop(){
+
+    in = (double) winchDriver.getPosition();
+    position->Compute();
+
+    if(enabled){
+//        INFO("Setting signal to %i, given current position of %i", (int)(out), (int)(in));
+        winchDriver.setSignal((int)out);
+
+        if(stopOnDistance && isWithinDistance()){
+            end();
+        } else if (holdOnDistance && isWithinDistance()){
+            setTarget(winchDriver.getPosition());
+        }
+    }
+}
+
+void PIDPositionController::start() {
+    enabled = true;
+    position->SetMode(AUTOMATIC);
+
+    // Turn on the motors
+    winchDriver.go();
+}
+
+void PIDPositionController::end() {
+    enabled = false;
+    position->SetMode(MANUAL);
+
+    // Reset Parameters
+    stopOnDistance = false;
+    holdOnDistance = false;
+    distanceCondition = 0.0;
+}
+
+void PIDSpeedController::setup(){
+    position = new PID(&pos_in, &pos_out, &pos_setpt, pos_Kp, 0.0, 0.0, DIRECT);
+    position->SetMode(AUTOMATIC);
+    position->SetOutputLimits(POSITION_LOWER_LIMIT, POSITION_UPPER_LIMIT);
+
+    speed = new PID(&spd_in, &spd_out, &pos_out, spd_Kp, spd_Ki, 0.0, DIRECT);
+    speed->SetMode(AUTOMATIC);
+    speed->SetOutputLimits(MOTOR_LOWER_LIMIT, MOTOR_UPPER_LIMIT);
 }

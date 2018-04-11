@@ -41,7 +41,7 @@ public:
 
     WinchDriver(EncoderParams enc_p, MotorParams motor_p,
                 ScaleParams scale_p
-                //FilterParams filter_p
+                //PIDParams filter_p
     );
 
     WinchDriver();
