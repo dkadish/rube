@@ -86,12 +86,12 @@ void serial_loop(){
     while (cmdSerial->available())
     {
         char character = cmdSerial->read();
-        msgSerial->println(character);
         if (character != '\n') {
             command.concat(character);
         } else {
             msgSerial->println(command);
             handleSerialInput(command);
+            msgSerial->println("Clearing Command Buffer...");
             command = "";
             cmdSerial->flush();
         }
@@ -100,7 +100,7 @@ void serial_loop(){
 
 void handleSerialInput(String serial_in){
     if( serial_in[0] == 'S' ){
-        INFO("Printing Sensors");
+        msgSerial->println("Printing Sensors");
         printSensors();
     } else if (serial_in[0] == 'C'){ // Configuration
         if( serial_in[1] == 'P' ){
@@ -123,8 +123,10 @@ void handleSerialInput(String serial_in){
         } else if ( serial_in[2] == 'D' ){
             doDisplayWinchState(winch_i);
         } else if ( serial_in[2] == 'T' ){
+            INFO("Tensioning winch %i.", winch_i);
             doTensionLine(winch_i);
         } else if ( serial_in[2] == 'R' ){
+            INFO("Releasing winch %i.", winch_i);
             doRelaxLine(winch_i);
         } else if ( serial_in[2] == 'W' ){ // Wind
             int ms = serial_in.substring(3).toInt(); // Time in ms to wind for
@@ -303,29 +305,23 @@ void doDisplayWinchState(int winch_i){
 }
 
 void doTensionLine(int winch_i){
-    if(!winches[winch_i].isUnderTension()) {
-        winches[winch_i].doGo(100);
-    } else {
-        char response[255];
-        sprintf(response, "Winch %i is already under tension. Position: %i.%i, Tension: %i.%i.", winch_i,
+    if(winches[winch_i].isUnderTension()) {
+        msgSerial->printf("Winch %i is already under tension. Position: %i.%i, Tension: %i.%i.\n", winch_i,
                 (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
                 (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
         );
-        wifiResponse(response);
         return;
     }
 
+    winches[winch_i].doRetension();
     while(!winches[winch_i].isUnderTension()){
         loop();
     }
-    winches[winch_i].doGo(0);
 
-    char response[255];
-    sprintf(response, "Winch %i Tensioned. Position: %i.%i, Tension: %i.%i.", winch_i,
+    msgSerial->printf("Winch %i Tensioned. Position: %i.%i, Tension: %i.%i.\n", winch_i,
             (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
             (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
     );
-    wifiResponse(response);
 }
 
 void doRelaxLine(int winch_i){
@@ -333,12 +329,10 @@ void doRelaxLine(int winch_i){
     if(winches[winch_i].isUnderTension()) {
         winches[winch_i].doGo(-100);
     } else {
-        char response[255];
-        sprintf(response, "Winch %i is already relaxed. Position: %i.%i, Tension: %i.%i.", winch_i,
+        msgSerial->printf("Winch %i is already relaxed. Position: %i.%i, Tension: %i.%i.\n", winch_i,
                 (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
                 (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
         );
-        wifiResponse(response);
         return;
     }
 
@@ -348,12 +342,10 @@ void doRelaxLine(int winch_i){
     // Stop the motor
     winches[winch_i].doGo(0);
 
-    char response[255];
-    sprintf(response, "Winch %i relaxed. Position: %i.%i, Tension: %i.%i.", winch_i,
+    msgSerial->printf("Winch %i relaxed. Position: %i.%i, Tension: %i.%i.\n", winch_i,
             (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
             (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
     );
-    wifiResponse(response);
 }
 
 void doRampUp(int winch_i, int ms){

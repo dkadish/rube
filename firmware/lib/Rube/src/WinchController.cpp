@@ -27,21 +27,11 @@ void MinimumMotionController::setup() {
 
 void MinimumMotionController::loop() {
 
-    // Stop if tension is lost
-    /*if (!winchDriver.isUnderTension()){
-        winchDriver.go_signal(0);
-        char response[255];
-        sprintf(response, "Winch is lost tension.");
-        wifiResponse(response);
-        end();
-    }*/
-    //INFO("MM: Looping. %i", enabled ? 1 : 0);
-    //FIXME: Enabled is showing up false here. WHY
-    //INFO("MM Enabled? %i %i %i %i", enabled ? 1 : 0, isEnabled() ? 1 : 0, Controller::enabled ? 1 : 0, Controller::isEnabled() ? 1 : 0);
     if(enabled) {
-        INFO("MM: Looping.");
+        INFO("MM: Enabled.");
         // Raise the level every once in a while IF it has not moved since last time.
         if (rampTimer / 5 > lastPositioningTime) {
+            INFO("MM: Time Check.");
             lastPositioningTime++;
             long winchPos = winchDriver.getEncoderTicks();
 

@@ -53,7 +53,6 @@ struct FilterParams {
     double speedKi;
 };
 
-//FIXME: Winch should not INHERIT WinchDriver. It should HAVE a WinchDriver.
 class Winch {
 
     double spd_setpt;
@@ -80,17 +79,17 @@ public:
     void loop();
 
     // Controllers
-    MinimumMotionController mm_ctrl;
-    TensionMaintenanceController tension_ctrl;
-    RetensioningController retension_ctrl;
+    MinimumMotionController *mm_ctrl;
+    TensionMaintenanceController *tension_ctrl;
+    RetensioningController *retension_ctrl;
 
     const static int n_controllers = 3;
     Controller *controllers[n_controllers]; // = {&mm_ctrl, &tension_ctrl, &retension_ctrl};
 
     // Motion commands
-    void doRetension(){ retension_ctrl.start(); }
-    void doSlowUp(){ mm_ctrl.setDirection(true); mm_ctrl.start(); }
-    void doSlowDown(){ mm_ctrl.setDirection(false); mm_ctrl.start(); }
+    void doRetension(){ retension_ctrl->start(); }
+    void doSlowUp(){ mm_ctrl->setDirection(true); mm_ctrl->start(); }
+    void doSlowDown(){ mm_ctrl->setDirection(false); mm_ctrl->start(); }
     void doStop();
 
     // Position Variables

@@ -18,7 +18,7 @@ public:
 //    virtual void setup();
 //    virtual void loop();
 
-protected:
+//protected:
     WinchDriver &winchDriver;
     //bool enabled = false;
 };
@@ -74,7 +74,7 @@ public:
  */
 class RetensioningController: public WinchController {
 public:
-    RetensioningController(WinchDriver &winchDriver, TensionMaintenanceController &tension) :
+    RetensioningController(WinchDriver &winchDriver, TensionMaintenanceController *tension) :
             WinchController(winchDriver), tensioner(tension) {}
 
     virtual void setup(){}; /**< Run during the main setup() */
@@ -83,7 +83,7 @@ public:
     /** Run before each invocation of RetensioningController */
     virtual void start() {
         enabled = true;
-        tensioner.end(); // Turn off the tension maintenance controller so it doesn't stop motion.
+        tensioner->end(); // Turn off the tension maintenance controller so it doesn't stop motion.
 
         winchDriver.setSignal(100);
         winchDriver.go();
@@ -92,11 +92,11 @@ public:
     /** Run at the end of each invocation of RetensioningController */
     virtual void end() {
         enabled = false;
-        tensioner.start();
+        tensioner->start();
     }
 
 private:
-    TensionMaintenanceController &tensioner;
+    TensionMaintenanceController *tensioner;
 };
 
 #endif //RUBE_WINCHCONTROLLER_H
