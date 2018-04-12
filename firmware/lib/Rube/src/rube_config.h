@@ -33,7 +33,7 @@
 
 // Used to calculate velocity from encoder motion and microseconds
 #define VELOCITY_SCALE_FACTOR 1000.0
-#define METRES_PER_REVOLUTION (0.01*2.0*3.14159) // A = r * theta
+#define METRES_PER_REVOLUTION (0.0129*3.14159) // A = r * theta, adjusted through calibration
 #endif
 #ifdef __MK20DX256__ // Teensy 3.2 (Test Rig)
 #define MOTOR_UPPER_LIMIT 100
