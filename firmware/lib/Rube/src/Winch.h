@@ -78,7 +78,7 @@ public:
 
     // Position Variables
 
-    double startLength = 0.0;
+    float startLength = 0.0;
     /**< Current position in distance from start
      * Up (shortening the line) is negative.
      */

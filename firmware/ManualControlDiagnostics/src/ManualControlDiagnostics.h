@@ -30,18 +30,18 @@ Winch P(2, ENC3A, ENC3B,
         IN1_2, IN2_2, PWM_2, 1, STBY_2,
         DOUT_C, SCK_C, SCALE3_OFFSET,
         KP, KI, KD);
-Winch winches[] = {O, Q, P}; // FIXME: Why is the order this way? B/C the index...
+Winch *winches[3];// = {O, Q, P}; // FIXME: Why is the order this way? B/C the index...
 const int N_WINCHES = 3;
 
 // Robot
 RobotSetupParameters robotParams = {
-    1.0, /**< The height of the bottom of the robot from the ground (m). */
-    /**< The length of the line from O to P (m). */
-    /**< The length of the line from P to Q (m). */
-    /**< The length of the line from O to Q (m). */
-    /**< Length of the cable from O to robot (m). */
-    /**< Length of the cable from P to robot (m).*/
-    /**< Length of the cable from Q to robot (m). */
+    2.5,    /**< The height of the bottom of the mounts from the ground (m). */
+    4.7,     /**< The length of the line from O to P (m). */
+    4.884,   /**< The length of the line from P to Q (m). */
+    3.863,    /**< The length of the line from O to Q (m). */
+    2.38, /**< Length of the cable from O to robot (m). */
+    3.13, /**< Length of the cable from P to robot (m).*/
+    3.54 /**< Length of the cable from Q to robot (m). */
 };
 
 RobotPosition position = RobotPosition();
@@ -53,6 +53,8 @@ Stream* datSerial=&Serial; // Data logs from the robot
 Stream* logSerial=&Serial; // Log messages from the
 
 String command = ""; // Commands received over serial
+
+void position_setup();
 
 void robot_loop();
 void serial_loop();

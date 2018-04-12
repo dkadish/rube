@@ -86,14 +86,6 @@ void Winch::loop() {
 
 }
 
-float Winch::getPosition() {
-}
-
-
-float Winch::getLength() {
-    return startLength - getPosition();
-}
-
 /** Stop all motion. Ends all controllers and engages tension control.
  *
  */

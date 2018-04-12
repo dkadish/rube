@@ -11,7 +11,6 @@
 RobotPosition::RobotPosition():mount_height(0) {
 
     lineLengths = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}; // Initialize as array { 1.0, 2.4, ... }
-    lineLengthSetpoints = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
     // Location of Q in XYZ
     O = {0.0, 0.0, 1.0};
@@ -20,6 +19,7 @@ RobotPosition::RobotPosition():mount_height(0) {
 
     // Setpoint in XYZ
     setpoint = {0.0, 0.0, 0.0};
+    setpoint_lengths = {0.0, 0.0, 0.0};
 
     // RobotPosition position in XYZ
     R = {0.0, 0.0, 0.0};
@@ -46,13 +46,15 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
     float r2=lineLengths.PQ;
     float d=lineLengths.OP;
 
+    //FIXME correct the calculations in here to account for new axes and the inverted Z-axis
+
     // Calculate the position of Q
     Q.x = ((d*d)-(r2*r2)+(r1*r1))/(2*d);
     char response[255];
-    sprintf(response, "Q.x: %i.%i\n", (int)Q.x, (int)(Q.x*100));
+    sprintf(response, "Q.x: %i.%i\n", (int)Q.x, (int)(Q.x*100.0));
     wifiResponse(response);
     Q.y = ((1/d) * sqrt((-d+r2-r1)*(-d-r2+r1)*(-d+r2+r1)*(d+r2+r1)))/2;
-    sprintf(response, "Q.y: %i.%i\n", (int)Q.y, (int)(Q.y*100));
+    sprintf(response, "Q.y: %i.%i\n", (int)Q.y, (int)(Q.y*100.0));
     wifiResponse(response);
     Q.z = mount_height;
 
@@ -65,13 +67,13 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
     float j=Q.y; //pointQ.y
 
     R.x=(( ( (r1*r1) - (r2*r2) + (d*d) ) /  (2*d) ));
-    sprintf(response, "R.x: %i.%i\n", (int)R.x, (int)(R.x*100));
+    sprintf(response, "R.x: %i.%i\n", (int)R.x, (int)(R.x*100.0));
     wifiResponse(response);
     R.y=(( ( (r1*r1) - (r3*r3) + (i*i) + (j*j) ) / (2*j) ) - ( (i/j)*R.x )); // ((r1*r1)-(r3*r3)-(xc*xc)+( (xc-i)*(xc-i) )+(j*j) / (2*j));
-    sprintf(response, "R.y: %i.%i\n", (int)R.y, (int)(R.y*100));
+    sprintf(response, "R.y: %i.%i\n", (int)R.y, (int)(R.y*100.0));
     wifiResponse(response);
     R.z=( sqrt( (r1*r1) - (R.x*R.x) - (R.y*R.y) ))  ;
-    sprintf(response, "R.z (down): %i.%i\n", (int)R.z, (int)(R.z*100));
+    sprintf(response, "R.z (down): %i.%i\n", (int)R.z, (int)(R.z*100.0));
     wifiResponse(response);
     R.z=mount_height-R.z;
 }
@@ -101,27 +103,24 @@ void RobotPosition::CalculateLines(Point3D point) {
  * P is at (d,0,0) and Q is at (i,j,0). In other words, the origins are planar
  * and P is on the x-axis.
  */
-Point3D RobotPosition::CalculateXYZ(Point3D O, Point3D P, Point3D Q, float length_O, float length_P, float length_Q) {
-    return RobotPosition::CalculateXYZ(O, P, Q, LineLengthTriplet({length_O, length_P, length_Q}));
-}
+void RobotPosition::CalculateXYZ(float length_O, float length_P, float length_Q) {
+    double d=P.y, i=Q.x, j=Q.y;
+    double l_O = (double) length_O, l_P = (double) length_P, l_Q = (double) length_Q;
 
-Point3D RobotPosition::CalculateXYZ(Point3D O, Point3D P, Point3D Q, LineLengthTriplet lengths) {
-    float d=P.x, i=Q.x, j=Q.y;
+    double y = (pow(l_O,2) - pow(l_P,2) + pow(d,2))/(2.0*d);//(pow(lengths.O, 2) - pow(lengths.P, 2) + pow(d, 2))/(2*d);
 
-    float x = (pow(lengths.O, 2) - pow(lengths.P, 2) + pow(d, 2))/(2*d);
+    double x = (pow(l_O,2)-pow(l_Q,2)+pow(i,2)+pow(j,2))/(2*j) - (i*y)/(j);
 
-    float y = (pow(lengths.O,2)-pow(lengths.Q,2)+pow(i,2)+pow(j,2))/(2*j) - (i*x)/(j);
+    double z = - sqrt(pow(l_O,2) - pow(x,2) - pow(y,2));
 
-    float z = - sqrt(pow(lengths.O,2) - pow(x,2) - pow(y,2));
-
-    Point3D r_xyz = {x, y, z};
-
-    return r_xyz;
+    R.x = (float)x;
+    R.y = (float)y;
+    R.z = (float)z;
 }
 
 // Find Position
 void Robot::getPosition(Point3D &position) {
-    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+    float d=P.getOrigin().x, i=Q.getOrigin().x, j=Q.getOrigin().y;
 
     position.x = getX();
 
@@ -131,7 +130,7 @@ void Robot::getPosition(Point3D &position) {
 }
 
 float Robot::getX(){
-    float d=P.origin.x;
+    float d=P.getOrigin().x;
 
     float x = (pow(O.getLength(), 2) - pow(P.getLength(), 2) + pow(d, 2))/(2*d);
     return x;
@@ -150,7 +149,7 @@ float Robot::getY() {
 }
 
 float Robot::_getz(float x, float y) {
-    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+    float d=P.getOrigin().x, i=Q.getOrigin().x, j=Q.getOrigin().y;
 
     float z = -sqrt(pow(O.getLength(),2) - pow(x,2) - pow(y,2));
     return z;
@@ -175,5 +174,5 @@ void Robot::setup() {
 }
 
 void RobotPosition::update(float length_O, float length_P, float length_Q){
-    R = RobotPosition::CalculateXYZ(O, P, Q, length_O, length_P, length_Q);
+    RobotPosition::CalculateXYZ(length_O, length_P, length_Q);
 }

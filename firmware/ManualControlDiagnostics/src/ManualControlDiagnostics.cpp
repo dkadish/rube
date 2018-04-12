@@ -6,6 +6,7 @@
  */
 
 #include "ManualControlDiagnostics.h"
+#include "../.piolibdeps/RUBE/src/robot.h"
 #include <Winch.h>
 #include <elapsedMillis.h>
 
@@ -23,6 +24,10 @@ elapsedMillis printTimer=0;
 void setup(){
     delay(2000);
 
+    winches[0] = &O;
+    winches[1] = &P;
+    winches[2] = &Q;
+
     Wire1.begin(I2C_MASTER, 0x00, I2C_PINS_37_38, I2C_PULLUP_EXT, 400000); // Teensy
     Wire3.begin(I2C_MASTER, 0x00, I2C_PINS_56_57, I2C_PULLUP_EXT, 400000); // Teensy
 
@@ -34,7 +39,7 @@ void setup(){
 
     // Winch
     for( int i=0; i < N_WINCHES; i++) {
-        winches[i].setup();
+        winches[i]->setup();
         INFO("Finished setting up 1 Winch");
     }
     INFO("Finished setting up Winch");
@@ -52,11 +57,58 @@ void setup(){
         delay(1000);
     }
 
-    // Positioning
-    position.CalibrateInitialPosition(robotParams);
+    position_setup();
 
     INFO("Staring Loop...");
 
+}
+
+void position_setup(){
+
+    msgSerial->printf("Setting up position with robot params | height: %i, OP: %i, PQ:%i, OQ: %i, OR: %i, PR: %i, QR:%i.\n",
+                      (int)robotParams.height, (int)robotParams.OP, (int)robotParams.PQ, (int)robotParams.OQ,
+                      (int)robotParams.OR, (int)robotParams.PR, (int)robotParams.QR
+    );
+
+
+    msgSerial->printf("The current line lengths are: ");
+    for( int i=0; i < N_WINCHES; i++) {
+        msgSerial->print(winches[i]->getLength());
+        if( i < 2 )
+            msgSerial->print(", ");
+    }
+    msgSerial->println();
+
+    Point3D pos = position.getXYZ();
+    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
+                      (int)(pos.x), decimalDigits(pos.x),
+                      (int)(pos.y), decimalDigits(pos.y),
+                      (int)(pos.z), decimalDigits(pos.z)
+    );
+
+    // Positioning
+    position.CalibrateInitialPosition(robotParams);
+    O.setOrigin(position.getOriginO());
+    P.setOrigin(position.getOriginP());
+    Q.setOrigin(position.getOriginQ());
+    O.setStartLength(robotParams.OR);
+    P.setStartLength(robotParams.OP);
+    Q.setStartLength(robotParams.OQ);
+
+    msgSerial->printf("The current line lengths are: ");
+    for( int i=0; i < N_WINCHES; i++) {
+        msgSerial->print(winches[i]->getLength());
+        if( i < 2 )
+            msgSerial->print(", ");
+    }
+    msgSerial->println();
+
+    pos = position.getXYZ();
+    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
+                      (int)(pos.x), decimalDigits(pos.x),
+                      (int)(pos.y), decimalDigits(pos.y),
+                      (int)(pos.z), decimalDigits(pos.z)
+    );
 }
 
 void loop(){
@@ -66,10 +118,10 @@ void loop(){
 }
 
 void robot_loop(){
-    position.update(O.getLength(), P.getLength(), Q.getLength());
+    //position.update(O.getLength(), P.getLength(), Q.getLength());
 
     for( int i=0; i < N_WINCHES; i++) {
-        winches[i].loop();
+        winches[i]->loop();
     }
 
     // IMU
@@ -159,33 +211,33 @@ void runDiagnostics(){
     for(int i=0; i < N_WINCHES; i++){
         INFO("Running diagnostics for motor: Starting motor...")
         elapsedMillis runTimer = 0;
-        startPos = winches[i].enc->read();
-        winches[i].stop_go = GO;
-        winches[i].control_mode = SIGNAL;
-        winches[i].signal = -150;
+        startPos = winches[i]->enc->read();
+        winches[i]->stop_go = GO;
+        winches[i]->control_mode = SIGNAL;
+        winches[i]->signal = -150;
         while(runTimer < 1000){
-            winches[i].loop();
-            downWeight += winches[i].scale.get_units(5);
+            winches[i]->loop();
+            downWeight += winches[i]->scale.get_units(5);
             weightCounter++;
             delayMicroseconds(1);
         }
         downWeight /= (float)weightCounter;
-        midPos = winches[i].enc->read();
+        midPos = winches[i]->enc->read();
         weightCounter = 0;
         delay(100);
         runTimer = 0;
-        winches[i].signal = 200;
+        winches[i]->signal = 200;
         while(runTimer < 1000){
-            winches[i].loop();
-            upWeight += winches[i].scale.get_units(5);
+            winches[i]->loop();
+            upWeight += winches[i]->scale.get_units(5);
             weightCounter++;
             delayMicroseconds(1);
         }
         upWeight /= (float)weightCounter;
-        winches[i].signal = 0;
-        winches[i].stop_go = STOP;
-        winches[i].loop();
-        endPos = winches[i].enc->read();
+        winches[i]->signal = 0;
+        winches[i]->stop_go = STOP;
+        winches[i]->loop();
+        endPos = winches[i]->enc->read();
         msgSerial->printf("Ran from %i > %i > %i\n", startPos, midPos, endPos);
         msgSerial->print("Weight: Down = ");
         msgSerial->print(downWeight);
@@ -201,7 +253,7 @@ void printConfig(){
     // Scales
     for( int i=0; i < N_WINCHES; i++) {
         msgSerial->printf("Scale offsets: ");
-        msgSerial->print(winches[i].getScaleOffset());
+        msgSerial->print(winches[i]->getScaleOffset());
         if( i < 2 )
             msgSerial->print(", ");
     }
@@ -215,9 +267,9 @@ void printConfig(){
 void tareScales(){
     msgSerial->print("Scale offsets: ");
     for( int i=0; i < N_WINCHES; i++) {
-        winches[i].scaleTare();
+        winches[i]->scaleTare();
         msgSerial->printf("%i: ", i);
-        msgSerial->print(winches[i].getScaleOffset());
+        msgSerial->print(winches[i]->getScaleOffset());
         msgSerial->print("L");
         if( i < 2 )
             msgSerial->print(", ");
@@ -228,28 +280,41 @@ void tareScales(){
 void printSensors(){
     // Winch
     for( int i=0; i < N_WINCHES; i++) {
-        winches[i].loop();
+        winches[i]->loop();
     }
     msgSerial->printf("The current positions of the winches are: ");
     for( int i=0; i < N_WINCHES; i++) {
-        msgSerial->print(winches[i].getPosition());
+        msgSerial->print(winches[i]->getPosition());
         if( i < 2 )
             msgSerial->print(", ");
     }
     msgSerial->println();
     msgSerial->printf("The current ticks of the winches are: ");
     for( int i=0; i < N_WINCHES; i++) {
-        msgSerial->print(winches[i].getEncoderTicks());
+        msgSerial->print(winches[i]->getEncoderTicks());
         if( i < 2 )
             msgSerial->print(", ");
     }
+    msgSerial->println();
     msgSerial->printf("The current line lengths are: ");
     for( int i=0; i < N_WINCHES; i++) {
-        msgSerial->print(winches[i].getLength());
+        msgSerial->print(winches[i]->getLength());
         if( i < 2 )
             msgSerial->print(", ");
     }
+    msgSerial->println();
+
     Point3D pos = position.getXYZ();
+    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
+                      (int)(pos.x), decimalDigits(pos.x),
+                      (int)(pos.y), decimalDigits(pos.y),
+                      (int)(pos.z), decimalDigits(pos.z)
+    );
+
+    INFO("Updating with %i, %i, %i", (int)O.getLength(), (int)P.getLength(), (int)Q.getLength());
+    position.update(O.getLength(), P.getLength(), Q.getLength());
+
+    pos = position.getXYZ();
     msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
                       (int)(pos.x), decimalDigits(pos.x),
                       (int)(pos.y), decimalDigits(pos.y),
@@ -260,9 +325,9 @@ void printSensors(){
     msgSerial->printf("The current weights are: ");
     for( int i=0; i < N_WINCHES; i++) {
         msgSerial->printf("%i: ", i);
-        msgSerial->print(winches[i].getTension());
+        msgSerial->print(winches[i]->getTension());
         msgSerial->print("(");
-        msgSerial->print(winches[i].isUnderTension());
+        msgSerial->print(winches[i]->isUnderTension());
         msgSerial->print(")");
         if( i < 2 )
             msgSerial->print(", ");
@@ -308,79 +373,79 @@ void printSensors(){
 
 // Winch Functions
 void doWinchStop(int winch_i){
-    winches[winch_i].doStop();
+    winches[winch_i]->doStop();
 }
 
 void doSetWinchSignal(int winch_i, int signal){
-    winches[winch_i].doGo(signal);
+    winches[winch_i]->doGo(signal);
 }
 
 void doSetWinchPositionSetpoint(int winch_i, float setpoint){
-    winches[winch_i].doGoTo(setpoint, 0.25);
-//    INFO("Error is %i.%i. Stopping.", (int)(winches[winch_i].pidPos_ctrl->getError()), winches[winch_i].pidPos_ctrl->getError());
+    winches[winch_i]->doGoTo(setpoint, 0.25);
+//    INFO("Error is %i.%i. Stopping.", (int)(winches[winch_i]->pidPos_ctrl->getError()), winches[winch_i]->pidPos_ctrl->getError());
 }
 
 void doDisplayWinchState(int winch_i){
     char response[255];
     sprintf(response, "Winch %i Position: %i.%i, Est. Speed: %i.%i", winch_i,
-            (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-            (int)(winches[winch_i].getSpeed()), decimalDigits(winches[winch_i].getSpeed())
+            (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+            (int)(winches[winch_i]->getSpeed()), decimalDigits(winches[winch_i]->getSpeed())
     );
     wifiResponse(response);
 }
 
 void doTensionLine(int winch_i){
-    if(winches[winch_i].isUnderTension()) {
+    if(winches[winch_i]->isUnderTension()) {
         msgSerial->printf("Winch %i is already under tension. Position: %i.%i, Tension: %i.%i.\n", winch_i,
-                (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-                (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
+                (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+                (int)(winches[winch_i]->getTension()), decimalDigits(winches[winch_i]->getTension())
         );
         return;
     }
 
-    winches[winch_i].doRetension();
-    while(!winches[winch_i].isUnderTension()){
+    winches[winch_i]->doRetension();
+    while(!winches[winch_i]->isUnderTension()){
         loop();
     }
 
     msgSerial->printf("Winch %i Tensioned. Position: %i.%i, Tension: %i.%i.\n", winch_i,
-            (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-            (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
+            (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+            (int)(winches[winch_i]->getTension()), decimalDigits(winches[winch_i]->getTension())
     );
 }
 
 void doRelaxLine(int winch_i){
     // Set the motor speed
-    if(winches[winch_i].isUnderTension()) {
-        winches[winch_i].doGo(-100);
+    if(winches[winch_i]->isUnderTension()) {
+        winches[winch_i]->doGo(-100);
     } else {
         msgSerial->printf("Winch %i is already relaxed. Position: %i.%i, Tension: %i.%i.\n", winch_i,
-                (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-                (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
+                (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+                (int)(winches[winch_i]->getTension()), decimalDigits(winches[winch_i]->getTension())
         );
         return;
     }
 
-    while(winches[winch_i].isUnderTension()){
+    while(winches[winch_i]->isUnderTension()){
         loop();
     }
     // Stop the motor
-    winches[winch_i].doGo(0);
+    winches[winch_i]->doGo(0);
 
     msgSerial->printf("Winch %i relaxed. Position: %i.%i, Tension: %i.%i.\n", winch_i,
-            (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-            (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
+            (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+            (int)(winches[winch_i]->getTension()), decimalDigits(winches[winch_i]->getTension())
     );
 }
 
 void doRampUp(int winch_i, int ms){
     INFO("Doing RampUp");
-    winches[winch_i].doSlowUp();
+    winches[winch_i]->doSlowUp();
     _doRamp(winch_i, ms);
 }
 
 void doRampDown(int winch_i, int ms) {
-    winches[winch_i].doSlowDown();
+    winches[winch_i]->doSlowDown();
     _doRamp(winch_i, ms);
 }
 
@@ -397,18 +462,18 @@ void _doRamp(int winch_i, int ms){
         // Print the tension every once in a while
         if( rampTimer/50 > lastPrint ){
             lastPrint++;
-            msgSerial->printf("Ramp is at %i. Position: %i.%i, Tension: %i.%i\n", winches[winch_i].getSignal(),
-                              (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-                              (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension()));
+            msgSerial->printf("Ramp is at %i. Position: %i.%i, Tension: %i.%i\n", winches[winch_i]->getSignal(),
+                              (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+                              (int)(winches[winch_i]->getTension()), decimalDigits(winches[winch_i]->getTension()));
         }
     }
     // Stop the motor
-    winches[winch_i].doStop();
+    winches[winch_i]->doStop();
 
     char response[255];
     sprintf(response, "Winch %i ramped. Position: %i.%i, Tension: %i.%i.", winch_i,
-            (int)(winches[winch_i].getPosition()), decimalDigits(winches[winch_i].getPosition()),
-            (int)(winches[winch_i].getTension()), decimalDigits(winches[winch_i].getTension())
+            (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
+            (int)(winches[winch_i]->getTension()), decimalDigits(winches[winch_i]->getTension())
     );
     wifiResponse(response);
 

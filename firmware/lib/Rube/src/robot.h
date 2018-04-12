@@ -22,7 +22,7 @@
  *                                                      Q
  */
 struct RobotSetupParameters {
-    float height; /**< The height of the bottom of the robot from the ground (m). */
+    float height; /**< The height of the bottom of the mounts from the ground (m). */
 
     float OP; /**< The length of the line from O to P (m). */
     float PQ; /**< The length of the line from P to Q (m). */
@@ -71,8 +71,11 @@ public:
     RobotPosition();
 
     Point3D getXYZ(){return R;}
+    Point3D getOriginO(){return O;}
+    Point3D getOriginP(){return P;}
+    Point3D getOriginQ(){return Q;}
     float getTargetO(){return setpoint_lengths.O;}
-    float getTargetR(){return setpoint_lengths.P;}
+    float getTargetP(){return setpoint_lengths.P;}
     float getTargetQ(){return setpoint_lengths.Q;}
 
     void CalibrateInitialPosition(RobotSetupParameters params);
@@ -81,8 +84,9 @@ public:
     void CalculateLines(float x, float y, float z);
     void CalculateLines(Point3D xyz);
 
-    static Point3D CalculateXYZ(Point3D O, Point3D P, Point3D Q, float length_O, float length_P, float length_Q);
-    static Point3D CalculateXYZ(Point3D O, Point3D P, Point3D Q, LineLengthTriplet lengths);
+    /**< Calcualtes new R and stores it */
+    void CalculateXYZ(float length_O, float length_P, float length_Q);
+    //void CalculateXYZ(LineLengthTriplet lengths);
 
     void update(float length_O, float length_P, float length_Q);
 };
