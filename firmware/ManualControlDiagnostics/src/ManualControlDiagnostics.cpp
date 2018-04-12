@@ -119,7 +119,9 @@ void handleSerialInput(String serial_in){
         } else if ( serial_in[2] == 'V' ){
             doSetWinchSignal(winch_i,serial_in.substring(3).toInt());
         } else if ( serial_in[2] == 'P' ){
-            //xdoSetWinchPositionSetpoint(winch_i, serial_in.substring(3).toFloat());
+            float pt = serial_in.substring(3).toFloat();
+            INFO("Repositioning to %i.%i", (int)(pt), decimalDigits(pt));
+            doSetWinchPositionSetpoint(winch_i, pt);
         } else if ( serial_in[2] == 'D' ){
             doDisplayWinchState(winch_i);
         } else if ( serial_in[2] == 'T' ){
@@ -225,6 +227,13 @@ void printSensors(){
     }
     msgSerial->printf("The current positions of the winches are: ");
     for( int i=0; i < N_WINCHES; i++) {
+        msgSerial->print(winches[i].getPosition());
+        if( i < 2 )
+            msgSerial->print(", ");
+    }
+    msgSerial->println();
+    msgSerial->printf("The current ticks of the winches are: ");
+    for( int i=0; i < N_WINCHES; i++) {
         msgSerial->print(winches[i].getEncoderTicks());
         if( i < 2 )
             msgSerial->print(", ");
@@ -290,10 +299,10 @@ void doSetWinchSignal(int winch_i, int signal){
     winches[winch_i].doGo(signal);
 }
 
-/*void doSetWinchPositionSetpoint(int winch_i, float setpoint){
-    winches[winch_i].pos_setpt = setpoint;
-    winches[winch_i].control_mode = POSITION;
-}*/
+void doSetWinchPositionSetpoint(int winch_i, float setpoint){
+    winches[winch_i].doGoTo(setpoint, 0.25);
+//    INFO("Error is %i.%i. Stopping.", (int)(winches[winch_i].pidPos_ctrl->getError()), winches[winch_i].pidPos_ctrl->getError());
+}
 
 void doDisplayWinchState(int winch_i){
     char response[255];

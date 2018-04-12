@@ -8,131 +8,85 @@
 #include "Geometry.h"
 #include "WinchDriver.h"
 #include "WinchController.h"
+#include "rube_config.h"
 
 #include <HX711.h>
-#include <PID_v1.h>
 #include <Encoder.h>
 #include <elapsedMillis.h>
 #include <SparkFun_TB6612.h>
-#include <PID_v1.h>
-
-#if defined(__MK66FX1M0__) || defined(__MK64FX512__)
-#define MOTOR_UPPER_LIMIT 150
-#define MOTOR_LOWER_LIMIT -255
-
-#define POSITION_UPPER_LIMIT 100
-#define POSITION_LOWER_LIMIT -100
-
-// Used to calculate velocity from encoder motion and microseconds
-#define VELOCITY_SCALE_FACTOR 1000.0
-#define METRES_PER_REVOLUTION (0.01*2*3.14159) // A = r * theta
-#endif
-#ifdef __MK20DX256__ // Teensy 3.2 (Test Rig)
-#define MOTOR_UPPER_LIMIT 100
-#define MOTOR_LOWER_LIMIT -255
-
-#define POSITION_UPPER_LIMIT 20000
-#define POSITION_LOWER_LIMIT -20000
-
-// Used to calculate velocity from encoder motion and microseconds
-#define VELOCITY_SCALE_FACTOR 100000.0
-#endif
-
-#define POSITION 0
-#define SPEED 1
-#define SIGNAL 2
 
 struct PositionParams {
     Point3D origin;
     float length;
 };
 
-struct FilterParams {
-    double positionKp;
-    double speedKp;
-    double speedKi;
-};
-
 class Winch {
 
-    double spd_setpt;
     WinchDriver driver;
-
     elapsedMillis printTimer=0;
+
+    PIDParams pid_p;
 
 public:
 
     Winch(int index, int encA, int encB,
-                int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
-                int scale_dout, int scale_sck, long scale_offset,
-                float positionKp, float speedKp, float speedKi
+          int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
+          int scale_dout, int scale_sck, long scale_offset,
+          double positionKp, double speedKp, double speedKi
     );
 
     Winch(int index, EncoderParams enc_p, MotorParams motor_p,
-                ScaleParams scale_p, FilterParams filter_p);
+                ScaleParams scale_p, PIDParams pid_p);
 
     Winch(int index, EncoderParams enc_p, MotorParams motor_p,
-                ScaleParams scale_p, FilterParams filter_p, PositionParams pos_p);
+                ScaleParams scale_p, PIDParams pid_p, PositionParams pos_p);
 
     // Main Functions
     void setup();
+
     void loop();
 
     // Controllers
     MinimumMotionController *mm_ctrl;
     TensionMaintenanceController *tension_ctrl;
     RetensioningController *retension_ctrl;
+    PIDPositionController *pidPos_ctrl;
 
-    const static int n_controllers = 3;
+    const static int n_controllers = 4;
     Controller *controllers[n_controllers]; // = {&mm_ctrl, &tension_ctrl, &retension_ctrl};
 
     // Motion commands
     void doRetension(){ retension_ctrl->start(); }
+
     void doSlowUp(){ mm_ctrl->setDirection(true); mm_ctrl->start(); }
     void doSlowDown(){ mm_ctrl->setDirection(false); mm_ctrl->start(); }
     void doStop();
+    void doGoTo(float position){ pidPos_ctrl->setTarget(position); pidPos_ctrl->start(); }
+    void doGoTo(float position, float stoppingError) { /**< Go to a position, stop when nearby */
+        pidPos_ctrl->setTarget(position);
+        pidPos_ctrl->start();
+        pidPos_ctrl->setStopDistance((double)stoppingError);
+    }
+    void doHoldAt(float position, float stoppingError) { /**< Go to a position, hold when nearby */
+        pidPos_ctrl->setTarget(position);
+        pidPos_ctrl->start();
+        pidPos_ctrl->setHoldDistance((double) stoppingError);
+    }
+
 
     // Position Variables
     Point3D origin = {0.0,0.0,0.0};
+
     double startLength = 0.0;
     float getLength();
-
     // Internal Variables
     int cycles;
-    int index; // Which winch am I? [0 == A, 1 == B, ...]
 
+    int index; // Which winch am I? [0 == A, 1 == B, ...]
     // Motor
     int offset;
 
-
-    int control_mode = POSITION; // Is it position- or speed-controlled
-
     float getPosition(); /**< Current position in distance from start */
-
-    void pid_loop();
-
-    void pid_setup();
-
-    // Define the parameters
-    double pos_Kp;
-    // PID
-    //Define Variables we'll be connecting to
-    double pos_in;
-    // PID
-    //Define Variables we'll be connecting to
-    double pos_out;
-    // PID
-    //Define Variables we'll be connecting to
-    double pos_setpt;
-    //Specify the links and initial tuning parameters
-    PID * position;
-    // Define the parameters
-    double spd_Ki;
-    // Define the parameters
-    double spd_Kp;
-    double spd_in;
-    double spd_out;
-    PID * speed;
 
     float getSpeed(){ driver.getSpeed(); }
     int getSignal(){ driver.getSignal(); }

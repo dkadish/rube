@@ -22,7 +22,7 @@ WinchDriver::WinchDriver(int encA, int encB,
 
 WinchDriver::WinchDriver(EncoderParams enc_p, MotorParams motor_p,
                           ScaleParams scale_p
-                          //FilterParams filter_p
+                          //PIDParams filter_p
 ):
         encA(enc_p.A), encB(enc_p.B),
         motor(motor_p.in1, motor_p.in2, motor_p.pwm, motor_p.offset, motor_p.standby),
