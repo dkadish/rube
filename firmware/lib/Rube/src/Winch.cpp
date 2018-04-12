@@ -87,7 +87,6 @@ void Winch::loop() {
 }
 
 float Winch::getPosition() {
-    return driver.getEncoderTurns()*METRES_PER_REVOLUTION;
 }
 
 

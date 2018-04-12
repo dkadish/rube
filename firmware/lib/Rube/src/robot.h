@@ -45,23 +45,21 @@ struct TetrahedronLengths {
     float QR;
 };
 
-struct WinchGeometry {
-    Point3D origin;
-    float length;
+struct LineLengthTriplet {
+    float O;
+    float P;
+    float Q;
 };
 
 class RobotPosition {
 
-public:
-    RobotPosition();
-
     float mount_height; // The height (in metres) that the mount lineLengths are at.
 
     TetrahedronLengths lineLengths; // Initialize as array { 1.0, 2.4, ... }
-    TetrahedronLengths lineLengthSetpoints;
+    LineLengthTriplet setpoint_lengths;
 
     // Location of Q in XYZ
-    Point3D Q;//, O, P;
+    Point3D Q, O, P;
 
     // Setpoint in XYZ
     Point3D setpoint;
@@ -69,14 +67,24 @@ public:
     // RobotPosition position in XYZ
     Point3D R;
 
-    WinchGeometry winches[3];
+public:
+    RobotPosition();
+
+    Point3D getXYZ(){return R;}
+    float getTargetO(){return setpoint_lengths.O;}
+    float getTargetR(){return setpoint_lengths.P;}
+    float getTargetQ(){return setpoint_lengths.Q;}
 
     void CalibrateInitialPosition(RobotSetupParameters params);
+
+    /**< Calculate the necessary setpoints to get to {x,y,z} and set them */
     void CalculateLines(float x, float y, float z);
     void CalculateLines(Point3D xyz);
-    static Point3D CalculateXYZ(WinchGeometry O, WinchGeometry P, WinchGeometry Q);
 
-    void update();
+    static Point3D CalculateXYZ(Point3D O, Point3D P, Point3D Q, float length_O, float length_P, float length_Q);
+    static Point3D CalculateXYZ(Point3D O, Point3D P, Point3D Q, LineLengthTriplet lengths);
+
+    void update(float length_O, float length_P, float length_Q);
 };
 
 class Robot{

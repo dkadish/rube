@@ -27,6 +27,8 @@ class Winch {
 
     PIDParams pid_p;
 
+    Point3D origin = {0.0,0.0,0.0};
+
 public:
 
     Winch(int index, int encA, int encB,
@@ -75,18 +77,24 @@ public:
 
 
     // Position Variables
-    Point3D origin = {0.0,0.0,0.0};
 
     double startLength = 0.0;
-    float getLength();
+    /**< Current position in distance from start
+     * Up (shortening the line) is negative.
+     */
+    float getPosition(){ return driver.getEncoderTurns()*METRES_PER_REVOLUTION; }
+    float getLength(){ return startLength + getPosition(); } /**< Get the length of the winch line. */
+    void setStartLength(float length){ startLength = length; } /**< Set the initial length of the winch line. */
+    void setOrigin(Point3D o){origin = o;}
+    void setOrigin(float x, float y, float z){origin.x = x; origin.y = y; origin.z = z;}
+    Point3D getOrigin(){ return origin; }
+
     // Internal Variables
     int cycles;
-
     int index; // Which winch am I? [0 == A, 1 == B, ...]
+
     // Motor
     int offset;
-
-    float getPosition(); /**< Current position in distance from start */
 
     float getSpeed(){ driver.getSpeed(); }
     int getSignal(){ driver.getSignal(); }

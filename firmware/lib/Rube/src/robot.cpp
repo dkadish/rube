@@ -14,7 +14,9 @@ RobotPosition::RobotPosition():mount_height(0) {
     lineLengthSetpoints = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
     // Location of Q in XYZ
-    Q = {1.0, 1.0, 1.0};//, O, P;
+    O = {0.0, 0.0, 1.0};
+    P = {0.0, 1.0, 1.0};
+    Q = {1.0, 1.0, 1.0};
 
     // Setpoint in XYZ
     setpoint = {0.0, 0.0, 0.0};
@@ -33,6 +35,11 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
     lineLengths.OR = params.OR;
     lineLengths.PR = params.PR;
     lineLengths.QR = params.QR;
+
+    // Set Postion of O, P
+    O.z = mount_height;
+    P.y = lineLengths.OP;
+    P.z = mount_height;
 
     //first finding the XY position of point Q
     float r1=lineLengths.OQ;
@@ -73,17 +80,17 @@ void RobotPosition::CalculateLines(float x, float y, float z){
     setpoint.x=x;
     setpoint.y=y;
     setpoint.z=z;
-    float d= lineLengths.OP;
+    float d= P.x;
     float i= Q.x;
     float j= Q.y;
     float h=mount_height;
-    lineLengthSetpoints.OR = int(sqrt((setpoint.x*setpoint.x)+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h))));
-    lineLengthSetpoints.PR = int(sqrt(((setpoint.x-d)*(setpoint.x-d))+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h)))) ;
-    lineLengthSetpoints.QR = int(sqrt(((setpoint.x-i)*(setpoint.x-i))+((setpoint.y-j)*(setpoint.y-j))+((setpoint.z-h)*(setpoint.z-h)))) ;
+    setpoint_lengths.O = int(sqrt((setpoint.x*setpoint.x)+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h))));
+    setpoint_lengths.P = int(sqrt(((setpoint.x-d)*(setpoint.x-d))+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h)))) ;
+    setpoint_lengths.Q = int(sqrt(((setpoint.x-i)*(setpoint.x-i))+((setpoint.y-j)*(setpoint.y-j))+((setpoint.z-h)*(setpoint.z-h)))) ;
 }
 
-void RobotPosition::CalculateLines(Point3D) {
-
+void RobotPosition::CalculateLines(Point3D point) {
+    RobotPosition::CalculateLines(point.x, point.y, point.z);
 }
 
 /**
@@ -94,14 +101,18 @@ void RobotPosition::CalculateLines(Point3D) {
  * P is at (d,0,0) and Q is at (i,j,0). In other words, the origins are planar
  * and P is on the x-axis.
  */
-Point3D RobotPosition::CalculateXYZ(WinchGeometry O, WinchGeometry P, WinchGeometry Q) {
-    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+Point3D RobotPosition::CalculateXYZ(Point3D O, Point3D P, Point3D Q, float length_O, float length_P, float length_Q) {
+    return RobotPosition::CalculateXYZ(O, P, Q, LineLengthTriplet({length_O, length_P, length_Q}));
+}
 
-    float x = (pow(O.length, 2) - pow(P.length, 2) + pow(d, 2))/(2*d);
+Point3D RobotPosition::CalculateXYZ(Point3D O, Point3D P, Point3D Q, LineLengthTriplet lengths) {
+    float d=P.x, i=Q.x, j=Q.y;
 
-    float y = (pow(O.length,2)-pow(Q.length,2)+pow(i,2)+pow(j,2))/(2*j) - (i*x)/(j);
+    float x = (pow(lengths.O, 2) - pow(lengths.P, 2) + pow(d, 2))/(2*d);
 
-    float z = - sqrt(pow(O.length,2) - pow(x,2) - pow(y,2));
+    float y = (pow(lengths.O,2)-pow(lengths.Q,2)+pow(i,2)+pow(j,2))/(2*j) - (i*x)/(j);
+
+    float z = - sqrt(pow(lengths.O,2) - pow(x,2) - pow(y,2));
 
     Point3D r_xyz = {x, y, z};
 
@@ -127,7 +138,7 @@ float Robot::getX(){
 }
 
 float Robot::_getY(float x) {
-    float d=P.origin.x, i=Q.origin.x, j=Q.origin.y;
+    float d=P.getOrigin().x, i=Q.getOrigin().x, j=Q.getOrigin().y;
 
     float y = (pow(O.getLength(),2)-pow(Q.getLength(),2)+pow(i,2)+pow(j,2))/(2*j) - (i*x)/(j);
     return y;
@@ -155,3 +166,14 @@ void Robot::setPositionTarget(Point3D &position) {}
 void Robot::setXTarget(double x) {}
 void Robot::setYTarget(double y) {}
 void Robot::setZTarget(double z) {}
+
+void Robot::setup() {
+
+    // Set up the lengths of the lines
+    // winch.setStartLenght()
+
+}
+
+void RobotPosition::update(float length_O, float length_P, float length_Q){
+    R = RobotPosition::CalculateXYZ(O, P, Q, length_O, length_P, length_Q);
+}

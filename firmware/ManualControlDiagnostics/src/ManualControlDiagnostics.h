@@ -9,27 +9,42 @@
 #include <pindefs.h>
 #include <rube_config.h>
 #include <wifi.h>
+#include <Winch.h>
+#include <robot.h>
 
 #define KP 255.0
 #define KI 50.0
 #define KD 0.0
 
 // Winches
-#include <Winch.h>
-Winch A(0, ENC1A, ENC1B,
+//TODO Is this the right naming
+Winch O(0, ENC1A, ENC1B,
         IN1_0, IN2_0, PWM_0, 1, STBY_0,
         DOUT_A, SCK_A, SCALE1_OFFSET,
         KP, KI, KD);
-Winch B(1, ENC2A, ENC2B,
+Winch Q(1, ENC2A, ENC2B,
         IN1_1, IN2_1, PWM_1, 1, STBY_1,
         DOUT_B, SCK_B, SCALE2_OFFSET,
         KP, KI, KD);
-Winch C(2, ENC3A, ENC3B,
+Winch P(2, ENC3A, ENC3B,
         IN1_2, IN2_2, PWM_2, 1, STBY_2,
         DOUT_C, SCK_C, SCALE3_OFFSET,
         KP, KI, KD);
-Winch winches[] = {A, B, C};
+Winch winches[] = {O, Q, P}; // FIXME: Why is the order this way? B/C the index...
 const int N_WINCHES = 3;
+
+// Robot
+RobotSetupParameters robotParams = {
+    1.0, /**< The height of the bottom of the robot from the ground (m). */
+    /**< The length of the line from O to P (m). */
+    /**< The length of the line from P to Q (m). */
+    /**< The length of the line from O to Q (m). */
+    /**< Length of the cable from O to robot (m). */
+    /**< Length of the cable from P to robot (m).*/
+    /**< Length of the cable from Q to robot (m). */
+};
+
+RobotPosition position = RobotPosition();
 
 // Communication
 Stream* cmdSerial=&Serial; // Commands sent to the robot

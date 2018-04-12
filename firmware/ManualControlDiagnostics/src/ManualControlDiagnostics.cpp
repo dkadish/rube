@@ -52,6 +52,9 @@ void setup(){
         delay(1000);
     }
 
+    // Positioning
+    position.CalibrateInitialPosition(robotParams);
+
     INFO("Staring Loop...");
 
 }
@@ -63,6 +66,8 @@ void loop(){
 }
 
 void robot_loop(){
+    position.update(O.getLength(), P.getLength(), Q.getLength());
+
     for( int i=0; i < N_WINCHES; i++) {
         winches[i].loop();
     }
@@ -238,7 +243,18 @@ void printSensors(){
         if( i < 2 )
             msgSerial->print(", ");
     }
-    msgSerial->println();
+    msgSerial->printf("The current line lengths are: ");
+    for( int i=0; i < N_WINCHES; i++) {
+        msgSerial->print(winches[i].getLength());
+        if( i < 2 )
+            msgSerial->print(", ");
+    }
+    Point3D pos = position.getXYZ();
+    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
+                      (int)(pos.x), decimalDigits(pos.x),
+                      (int)(pos.y), decimalDigits(pos.y),
+                      (int)(pos.z), decimalDigits(pos.z)
+    );
 
     // Scales
     msgSerial->printf("The current weights are: ");
