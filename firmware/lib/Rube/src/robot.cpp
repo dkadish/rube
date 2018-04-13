@@ -102,16 +102,18 @@ void RobotPosition::CalculateLines(Point3D point) {
  * the current position of the robot. This assumes that O is located at (0,0,0),
  * P is at (d,0,0) and Q is at (i,j,0). In other words, the origins are planar
  * and P is on the x-axis.
+ *
+ * Assumes that the three mount points are level and returns R's z position wrt ground.
  */
 void RobotPosition::CalculateXYZ(float length_O, float length_P, float length_Q) {
-    double d=P.y, i=Q.x, j=Q.y;
+    double d=P.y, i=Q.y, j=Q.x;
     double l_O = (double) length_O, l_P = (double) length_P, l_Q = (double) length_Q;
 
     double y = (pow(l_O,2) - pow(l_P,2) + pow(d,2))/(2.0*d);//(pow(lengths.O, 2) - pow(lengths.P, 2) + pow(d, 2))/(2*d);
 
     double x = (pow(l_O,2)-pow(l_Q,2)+pow(i,2)+pow(j,2))/(2*j) - (i*y)/(j);
 
-    double z = - sqrt(pow(l_O,2) - pow(x,2) - pow(y,2));
+    double z = Q.z - sqrt(pow(l_O,2) - pow(x,2) - pow(y,2));
 
     R.x = (float)x;
     R.y = (float)y;
