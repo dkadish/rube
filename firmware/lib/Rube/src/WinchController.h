@@ -122,6 +122,8 @@ private:
  *
  *  The position is understood internally to be the distance in metres along
  *  the winch line from the starting point.
+ *
+ *  The main unit that the PID controller deals with is encoder turns.
  */
 class PIDPositionController: public WinchController {
 public:
@@ -139,13 +141,13 @@ public:
     void setTarget(float setpt){ setpoint = (double) setpt; }
     float getTarget(){ return (float) setpoint; }
 
-    float getError(){ return (float)(setpoint) - winchDriver.getPosition(); }
+    float getError(){ return (float)(setpoint) - winchDriver.getEncoderTurns(); }
 
     void setStopDistance(double distance){ stopOnDistance=true; distanceCondition=distance; };
     void setHoldDistance(double distance){ holdOnDistance=true; distanceCondition=distance; };
 
     // Builtin PID functions
-    void doHold(){ setTarget(winchDriver.getPosition()); start(); } /**< Hold the current position */
+    void doHold(){ setTarget(winchDriver.getEncoderTurns()); start(); } /**< Hold the current position */
 
 private:
     // Define the parameters
@@ -153,7 +155,7 @@ private:
 
     // PID
     //Define Variables we'll be connecting to
-    double in, out, setpoint;
+    double in, out, setpoint; /**< Setpoint is in encoder turns, from start at zero. */
 
     bool stopOnDistance=false, holdOnDistance=false;
     double distanceCondition=0.0; // Distance at which to stop/hold

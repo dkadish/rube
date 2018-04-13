@@ -7,6 +7,8 @@
 
 #ifdef LOGGING
 
+#define FLOAT(fl_var) (int)(fl_var), abs((int)((fl_var)*100.0 - ((float)((int)(fl_var)*100))))
+
 #if LOGGING >= 1
     #define FATAL(str, ...) \
        Serial.print("FATAL ("); \

@@ -49,35 +49,38 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
     //FIXME correct the calculations in here to account for new axes and the inverted Z-axis
 
     // Calculate the position of Q
-    Q.x = ((d*d)-(r2*r2)+(r1*r1))/(2*d);
     char response[255];
+    Q.x = ((1/d) * sqrt((-d+r2-r1)*(-d-r2+r1)*(-d+r2+r1)*(d+r2+r1)))/2;
     sprintf(response, "Q.x: %i.%i\n", (int)Q.x, (int)(Q.x*100.0));
     wifiResponse(response);
-    Q.y = ((1/d) * sqrt((-d+r2-r1)*(-d-r2+r1)*(-d+r2+r1)*(d+r2+r1)))/2;
+    Q.y = ((d*d)-(r2*r2)+(r1*r1))/(2*d);
     sprintf(response, "Q.y: %i.%i\n", (int)Q.y, (int)(Q.y*100.0));
     wifiResponse(response);
     Q.z = mount_height;
 
-    //now finding the pointR based on the three other lineLengths OPQ and the distances from these to pointR
-    r1=lineLengths.OR;
-    r2=lineLengths.PR;
-    float r3=lineLengths.QR;
-    d=lineLengths.OP;
-    float i=Q.x; //pointQ.x
-    float j=Q.y; //pointQ.y
+    CalculateXYZ(lineLengths.OR, lineLengths.PR, lineLengths.QR);
 
-    R.x=(( ( (r1*r1) - (r2*r2) + (d*d) ) /  (2*d) ));
-    sprintf(response, "R.x: %i.%i\n", (int)R.x, (int)(R.x*100.0));
-    wifiResponse(response);
-    R.y=(( ( (r1*r1) - (r3*r3) + (i*i) + (j*j) ) / (2*j) ) - ( (i/j)*R.x )); // ((r1*r1)-(r3*r3)-(xc*xc)+( (xc-i)*(xc-i) )+(j*j) / (2*j));
-    sprintf(response, "R.y: %i.%i\n", (int)R.y, (int)(R.y*100.0));
-    wifiResponse(response);
-    R.z=( sqrt( (r1*r1) - (R.x*R.x) - (R.y*R.y) ))  ;
-    sprintf(response, "R.z (down): %i.%i\n", (int)R.z, (int)(R.z*100.0));
-    wifiResponse(response);
-    R.z=mount_height-R.z;
+//    //now finding the pointR based on the three other lineLengths OPQ and the distances from these to pointR
+//    r1=lineLengths.OR;
+//    r2=lineLengths.PR;
+//    float r3=lineLengths.QR;
+//    d=lineLengths.OP;
+//    float i=Q.x; //pointQ.x
+//    float j=Q.y; //pointQ.y
+//
+//    R.x=(( ( (r1*r1) - (r2*r2) + (d*d) ) /  (2*d) ));
+//    sprintf(response, "R.x: %i.%i\n", (int)R.x, (int)(R.x*100.0));
+//    wifiResponse(response);
+//    R.y=(( ( (r1*r1) - (r3*r3) + (i*i) + (j*j) ) / (2*j) ) - ( (i/j)*R.x )); // ((r1*r1)-(r3*r3)-(xc*xc)+( (xc-i)*(xc-i) )+(j*j) / (2*j));
+//    sprintf(response, "R.y: %i.%i\n", (int)R.y, (int)(R.y*100.0));
+//    wifiResponse(response);
+//    R.z=( sqrt( (r1*r1) - (R.x*R.x) - (R.y*R.y) ))  ;
+//    sprintf(response, "R.z (down): %i.%i\n", (int)R.z, (int)(R.z*100.0));
+//    wifiResponse(response);
+//    R.z=mount_height-R.z;
 }
 
+// TODO Check these calculations
 void RobotPosition::CalculateLines(float x, float y, float z){
     setpoint.x=x;
     setpoint.y=y;
@@ -106,14 +109,14 @@ void RobotPosition::CalculateLines(Point3D point) {
  * Assumes that the three mount points are level and returns R's z position wrt ground.
  */
 void RobotPosition::CalculateXYZ(float length_O, float length_P, float length_Q) {
-    double d=P.y, i=Q.y, j=Q.x;
-    double l_O = (double) length_O, l_P = (double) length_P, l_Q = (double) length_Q;
+    float d=P.y, i=Q.y, j=Q.x;
+    float l_O = length_O, l_P = length_P, l_Q = length_Q;
 
-    double y = (pow(l_O,2) - pow(l_P,2) + pow(d,2))/(2.0*d);//(pow(lengths.O, 2) - pow(lengths.P, 2) + pow(d, 2))/(2*d);
+    float y = (powf(l_O,2) - powf(l_P,2) + powf(d,2))/(2.0*d);//(powf(lengths.O, 2) - powf(lengths.P, 2) + powf(d, 2))/(2*d);
 
-    double x = (pow(l_O,2)-pow(l_Q,2)+pow(i,2)+pow(j,2))/(2*j) - (i*y)/(j);
+    float x = (powf(l_O,2)-powf(l_Q,2)+powf(i,2)+powf(j,2))/(2*j) - (i*y)/(j);
 
-    double z = Q.z - sqrt(pow(l_O,2) - pow(x,2) - pow(y,2));
+    float z = Q.z - sqrtf(powf(l_O,2) - powf(x,2) - powf(y,2));
 
     R.x = (float)x;
     R.y = (float)y;
@@ -176,5 +179,13 @@ void Robot::setup() {
 }
 
 void RobotPosition::update(float length_O, float length_P, float length_Q){
-    RobotPosition::CalculateXYZ(length_O, length_P, length_Q);
+    CalculateXYZ(length_O, length_P, length_Q);
+
+//    INFO("Length comparisons %i (%i), %i (%i), %i (%i)",
+//         (int)(length_O*1000),(int)(lineLengths.OR*1000),
+//         (int)(length_P*1000),(int)(lineLengths.PR*1000),
+//         (int)(length_Q*1000),(int)(lineLengths.QR*1000)
+//    )
+//
+//    CalculateXYZ(lineLengths.OR, lineLengths.PR, lineLengths.QR);
 }

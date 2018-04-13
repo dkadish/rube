@@ -84,6 +84,7 @@ void TensionMaintenanceController::loop() {
 
             // Check to see if this is the beginning of a lost tension event.
             if(lastLoopTension){
+                WARNING("Stopped due to lack of tension.")
                 lostTensionEvent = true;
             }
             lastLoopTension = false;
@@ -141,6 +142,7 @@ void PIDPositionController::start() {
 void PIDPositionController::end() {
     enabled = false;
     position->SetMode(MANUAL);
+    winchDriver.stop();
 
     // Reset Parameters
     stopOnDistance = false;

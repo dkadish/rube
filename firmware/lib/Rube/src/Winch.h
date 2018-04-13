@@ -29,6 +29,11 @@ class Winch {
 
     Point3D origin = {0.0,0.0,0.0};
 
+    float LengthToTurns(float length){
+        INFO("Relocating to %i.%i, position %i.%i", FLOAT(length), FLOAT((length - startLength) / METRES_PER_REVOLUTION))
+        return (length - startLength) / METRES_PER_REVOLUTION;
+    }
+
 public:
 
     Winch(int index, int encA, int encB,
@@ -63,14 +68,14 @@ public:
     void doSlowUp(){ mm_ctrl->setDirection(true); mm_ctrl->start(); }
     void doSlowDown(){ mm_ctrl->setDirection(false); mm_ctrl->start(); }
     void doStop();
-    void doGoTo(float position){ pidPos_ctrl->setTarget(position); pidPos_ctrl->start(); }
-    void doGoTo(float position, float stoppingError) { /**< Go to a position, stop when nearby */
-        pidPos_ctrl->setTarget(position);
+    void doGoTo(float length){ pidPos_ctrl->setTarget(LengthToTurns(length)); pidPos_ctrl->start(); }
+    void doGoTo(float length, float stoppingError) { /**< Go to a position, stop when nearby */
+        pidPos_ctrl->setTarget(LengthToTurns(length));
         pidPos_ctrl->start();
         pidPos_ctrl->setStopDistance((double)stoppingError);
     }
-    void doHoldAt(float position, float stoppingError) { /**< Go to a position, hold when nearby */
-        pidPos_ctrl->setTarget(position);
+    void doHoldAt(float length, float stoppingError) { /**< Go to a position, hold when nearby */
+        pidPos_ctrl->setTarget(LengthToTurns(length));
         pidPos_ctrl->start();
         pidPos_ctrl->setHoldDistance((double) stoppingError);
     }

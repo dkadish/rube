@@ -14,7 +14,7 @@
 
 #define KP 255.0
 #define KI 50.0
-#define KD 0.0
+#define KD 10.0
 
 // Winches
 //TODO Is this the right naming

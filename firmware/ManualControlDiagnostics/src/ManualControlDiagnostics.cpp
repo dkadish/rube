@@ -92,8 +92,8 @@ void position_setup(){
     P.setOrigin(position.getOriginP());
     Q.setOrigin(position.getOriginQ());
     O.setStartLength(robotParams.OR);
-    P.setStartLength(robotParams.OP);
-    Q.setStartLength(robotParams.OQ);
+    P.setStartLength(robotParams.PR);
+    Q.setStartLength(robotParams.QR);
 
     msgSerial->printf("The current line lengths are: ");
     for( int i=0; i < N_WINCHES; i++) {
@@ -118,7 +118,7 @@ void loop(){
 }
 
 void robot_loop(){
-    //position.update(O.getLength(), P.getLength(), Q.getLength());
+    position.update(O.getLength(), P.getLength(), Q.getLength());
 
     for( int i=0; i < N_WINCHES; i++) {
         winches[i]->loop();
@@ -305,16 +305,16 @@ void printSensors(){
     msgSerial->println();
 
     Point3D pos = position.getXYZ();
-    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
-                      (int)(pos.x), decimalDigits(pos.x),
-                      (int)(pos.y), decimalDigits(pos.y),
-                      (int)(pos.z), decimalDigits(pos.z)
-    );
-
-    INFO("Updating with %i, %i, %i", (int)O.getLength(), (int)P.getLength(), (int)Q.getLength());
-    position.update(O.getLength(), P.getLength(), Q.getLength());
-
-    pos = position.getXYZ();
+//    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
+//                      (int)(pos.x), decimalDigits(pos.x),
+//                      (int)(pos.y), decimalDigits(pos.y),
+//                      (int)(pos.z), decimalDigits(pos.z)
+//    );
+//
+//    INFO("Updating with %i, %i, %i", (int)O.getLength(), (int)P.getLength(), (int)Q.getLength());
+//    position.update(O.getLength(), P.getLength(), Q.getLength());
+//
+//    pos = position.getXYZ();
     msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
                       (int)(pos.x), decimalDigits(pos.x),
                       (int)(pos.y), decimalDigits(pos.y),
@@ -381,7 +381,7 @@ void doSetWinchSignal(int winch_i, int signal){
 }
 
 void doSetWinchPositionSetpoint(int winch_i, float setpoint){
-    winches[winch_i]->doGoTo(setpoint, 0.25);
+    winches[winch_i]->doGoTo(setpoint);//, 0.1);
 //    INFO("Error is %i.%i. Stopping.", (int)(winches[winch_i]->pidPos_ctrl->getError()), winches[winch_i]->pidPos_ctrl->getError());
 }
 
