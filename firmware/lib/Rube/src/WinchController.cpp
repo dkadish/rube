@@ -117,7 +117,7 @@ void PIDPositionController::setup(){
 
 void PIDPositionController::loop(){
 
-    in = (double) winchDriver.getPosition();
+    in = (double) winchDriver.getEncoderTurns();
     position->Compute();
 
     if(enabled){
@@ -127,7 +127,7 @@ void PIDPositionController::loop(){
         if(stopOnDistance && isWithinDistance()){
             end();
         } else if (holdOnDistance && isWithinDistance()){
-            setTarget(winchDriver.getPosition());
+            setTarget(winchDriver.getEncoderTurns());
         }
     }
 }

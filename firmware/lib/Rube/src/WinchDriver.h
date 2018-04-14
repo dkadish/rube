@@ -76,10 +76,10 @@ public:
     float getTension(){ return tension; }
 
     //TODO: Should not be getting from estimate here and from tracker in Winch
-    float getPosition(){ return pos_est; }
-    float getEncoderTurns(){ return (float) enc_pos; }
+    //float getPosition(){ return pos_est; }
+    float getEncoderTurns(){ return enc_turns; }
     long getEncoderTicks(){ return enc->read(); }
-    float getSpeed(){ return spd_est; }
+    //float getSpeed(){ return spd_est; }
 
     bool isOn(){return stop_go == State::GO; }
 
@@ -103,8 +103,8 @@ private:
     State stop_go = State::STOP ; // Is it in stop mode or go mode
 
     int encA, encB; /**< Pins for the magnetic encoder readings */
-    double enc_pos; // Encoder position, in revolutions. 1 rev = 1.0.
-    double enc_speed; // Encoder speed in revolutions/sec.
+    double enc_turns; // Encoder position, in revolutions. 1 rev = 1.0.
+    //double enc_speed; // Encoder speed in revolutions/sec.
     elapsedMicros encTimer;
 
     // Scale Variables
@@ -114,11 +114,11 @@ private:
     //(&spd_in, &spd_out, &spd_setpt, 0.0, 0.0, 0.0, DIRECT);
 
     // Estimation (see https://www.embeddedrelated.com/showarticle/530.php)
-    double pos_est = 0; // Position estimate
+    /*double pos_est = 0; // Position estimate
     double spd_est = 0; // Speed estimate
     double spd_int = 0; // Speed integrator
     double spd_tracking_ki = 5.0;
-    double spd_tracking_kp = 10.0;
+    double spd_tracking_kp = 10.0;*/
 
     // Printing variables
     long printTimer = 0;

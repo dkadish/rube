@@ -109,6 +109,9 @@ public:
         }
     }
 
+    //float getSpeed(){ driver.getSpeed(); }
+    int getSignal(){ driver.getSignal(); }
+
     //*** Driver access functions ***//
     // Scale
     void scaleTare(){ driver.scale.tare(10); } /**< Zero the scale */

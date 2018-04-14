@@ -41,10 +41,10 @@ void WinchDriver::enc_setup() {
 
     enc->write(0);
 
-    enc_pos = 0;
+    enc_turns = 0;
 
     // Set velocities to 0
-    spd_est = 0.0;
+    //spd_est = 0.0;
 
     encTimer = 0;
 }
@@ -83,13 +83,13 @@ void WinchDriver::enc_loop() {
 
     double dt = ((double) encTimer);
 
-    enc_pos = ((double)enc->read()) / TICKS_PER_REVOLUTION;
+    enc_turns = ((double)enc->read()) / TICKS_PER_REVOLUTION;
 
     // Estimate the velocity using a tracking loop (https://www.embeddedrelated.com/showarticle/530.php)
-    pos_est += (spd_est * dt) / 1000000.0;
-    double pos_est_err = enc_pos - pos_est;
+    /*pos_est += (spd_est * dt) / 1000000.0;
+    double pos_est_err = enc_turns - pos_est;
     spd_int += pos_est_err * spd_tracking_ki * dt / 1000000.0;
-    spd_est = pos_est_err * spd_tracking_kp + spd_int;
+    spd_est = pos_est_err * spd_tracking_kp + spd_int;*/
 
     encTimer = 0;
 

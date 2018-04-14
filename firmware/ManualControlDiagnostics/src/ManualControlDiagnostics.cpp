@@ -444,12 +444,12 @@ void doSetWinchPositionSetpoint(int winch_i, float setpoint){
 }
 
 void doDisplayWinchState(int winch_i){
-    char response[255];
+    /*char response[255];
     sprintf(response, "Winch %i Position: %i.%i, Est. Speed: %i.%i", winch_i,
             (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
             (int)(winches[winch_i]->getSpeed()), decimalDigits(winches[winch_i]->getSpeed())
     );
-    wifiResponse(response);
+    wifiResponse(response);*/
 }
 
 void doTensionLine(int winch_i){

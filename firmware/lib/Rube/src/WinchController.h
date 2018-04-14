@@ -120,10 +120,7 @@ private:
 
 /** Provides PID control to bring the motor to an encoder position.
  *
- *  The position is understood internally to be the distance in metres along
- *  the winch line from the starting point.
- *
- *  The main unit that the PID controller deals with is encoder turns.
+ *  The position is understood internally to be the number of encoder turns.
  */
 class PIDPositionController: public WinchController {
 public:
