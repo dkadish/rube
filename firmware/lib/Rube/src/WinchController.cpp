@@ -89,6 +89,9 @@ void TensionMaintenanceController::loop() {
                 lostTensionEvent = true;
             }
             lastLoopTension = false;
+        } else if(!lastLoopTension){
+            winchDriver.StartEncoder(); // Start the encoder if this is the first loop back under tension.
+            lastLoopTension = true;
         }
     }
 }

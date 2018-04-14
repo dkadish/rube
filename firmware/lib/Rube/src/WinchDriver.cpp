@@ -4,15 +4,17 @@
 
 #include "WinchDriver.h"
 #include "wifi.h"
+#include "logging.h"
 #include "rube_config.h"
 #include <Encoder.h>
 #include <usb_serial.h>
+#include <Arduino.h>
 
-WinchDriver::WinchDriver(int encA, int encB,
+WinchDriver::WinchDriver(int encA, int encB, int IDX,
                           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
                           int scale_dout, int scale_sck, long offset
                           //float positionKp, float speedKp, float speedKi
-): encA(encA), encB(encB), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
+): encA(encA), encB(encB), encIDX(IDX), motor(motorIn1, motorIn2, motorPwm, motorOffset, motorStby),
    dout(scale_dout), sck(scale_sck), scale_offset(offset),
    //Winch::pos_Kp(positionKp), Winch::spd_Kp(speedKp), Winch::spd_Ki(speedKi),
    stop_go(STOP)
@@ -24,7 +26,7 @@ WinchDriver::WinchDriver(EncoderParams enc_p, MotorParams motor_p,
                           ScaleParams scale_p
                           //PIDParams filter_p
 ):
-        encA(enc_p.A), encB(enc_p.B),
+        encA(enc_p.A), encB(enc_p.B), encIDX(enc_p.IDX),
         motor(motor_p.in1, motor_p.in2, motor_p.pwm, motor_p.offset, motor_p.standby),
         dout(scale_p.dout), sck(scale_p.sck), scale_offset(scale_p.offset),
         //Winch::pos_Kp(filter_p.positionKp), Winch::spd_Kp(filter_p.speedKp), Winch::spd_Ki(filter_p.speedKi),
@@ -41,7 +43,17 @@ void WinchDriver::enc_setup() {
 
     enc->write(0);
 
-    enc_turns = 0;
+    switch(encIDX) {
+        case 23:
+            attachInterrupt(digitalPinToInterrupt(encIDX), isr23, RISING);
+            break;
+        case 24:
+            attachInterrupt(digitalPinToInterrupt(encIDX), isr24, RISING);
+            break;
+        case 26:
+            attachInterrupt(digitalPinToInterrupt(encIDX), isr26, RISING);
+            break;
+    }
 
     // Set velocities to 0
     //spd_est = 0.0;
@@ -78,12 +90,76 @@ void WinchDriver::motor_loop() {
 
 }
 
+void WinchDriver::StopEncoder() {
+    encoder.active = false;
+}
+
+void WinchDriver::StartEncoder() {
+    encoder.active = true;
+    encoder.index_sync = false;
+
+    enc->write((int32_t) encoder.ticks);
+}
+
 void WinchDriver::enc_loop() {
     // TODO Should this run faster than the control loop?
 
     //double dt = ((double) encTimer);
 
-    enc_turns = ((double)enc->read()) / TICKS_PER_REVOLUTION;
+    // Ignore everything if the encoder is not active.
+    if(encoder.active){
+        long ticks = enc->read();
+
+        // Verify the number
+        long change = ticks - encoder.ticks;
+        if( change > TICKS_PER_REVOLUTION || change < -TICKS_PER_REVOLUTION ){
+            WARNING("Jump in encoder detected. Ticks moved from %i to %i in one loop, a change of %i. Ignoring movement.", encoder.ticks, ticks, change);
+        } else {
+            encoder.ticks_prev = encoder.ticks;
+            encoder.ticks = ticks;
+        }
+
+        // Check for index
+        switch (encIDX){
+            case 23:
+                encoder.index_tick = idx_tick_23;
+                break;
+            case 24:
+                encoder.index_tick = idx_tick_24;
+                break;
+            case 26:
+                encoder.index_tick = idx_tick_26;
+                break;
+        }
+
+        if( encoder.index_tick ){
+            if( encoder.index_sync ){
+                // Check number of ticks since last sync
+                long idx_change = encoder.index_prev_tick - encoder.ticks;
+                if( idx_change > TICKS_PER_REVOLUTION + 10 || idx_change < - TICKS_PER_REVOLUTION - 10 ){
+                    WARNING("Jump in encoder detected by index. Ticks moved from %i to %i in one index, a change of %i. The count is off.", encoder.index_prev_tick, encoder.ticks, idx_change);
+                } else {
+                    encoder.index_prev_tick = encoder.ticks;
+                    if(encoder.ticks > encoder.ticks_prev) {
+                        encoder.index++;
+                    } else {
+                        encoder.index--;
+                    }
+                }
+            } else {
+                encoder.index_prev_tick = encoder.ticks;
+                if(encoder.ticks > encoder.ticks_prev) {
+                    encoder.index++;
+                } else {
+                    encoder.index--;
+                }
+            }
+
+            encoder.index_tick = false;
+        }
+
+        encoder.turns = ((float)encoder.ticks) / ((float)TICKS_PER_REVOLUTION);
+    }
 
     // Estimate the velocity using a tracking loop (https://www.embeddedrelated.com/showarticle/530.php)
     /*pos_est += (spd_est * dt) / 1000000.0;

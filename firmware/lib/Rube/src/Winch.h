@@ -36,7 +36,7 @@ class Winch {
 
 public:
 
-    Winch(int index, int encA, int encB,
+    Winch(int index, int encA, int encB, int encIDX,
           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
           int scale_dout, int scale_sck, long scale_offset,
           double positionKp, double speedKp, double speedKi

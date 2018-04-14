@@ -14,6 +14,7 @@
 struct EncoderParams {
     int A;
     int B;
+    int IDX;
 };
 
 struct MotorParams {
@@ -30,10 +31,21 @@ struct ScaleParams {
     int offset;
 };
 
+struct EncoderState {
+    long ticks; /**< How many quadrature ticks from the start at zero */
+    long ticks_prev; /**< Quadrature tick count at last loop (for direction/change) */
+    long index; /**< Index (counts revolutions) position. NOT FOR COUNTING TOTAL REVS */
+    long index_prev_tick; /**< Tick count at last Index */
+    bool index_tick; /**< An Index tick has been registered since last loop */
+    bool index_sync; /**< Whether the index is in sync. This is not true if the ticks has been started or adjusted since last index */
+    float turns; /**< Total turns, ticks * revoltions/tick */
+    bool active;
+};
+
 class WinchDriver {
 
 public:
-    WinchDriver(int encA, int encB,
+    WinchDriver(int encA, int encB, int IDX,
                 int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
                 int scale_dout, int scale_sck, long scale_offset
                 //float positionKp, float speedKp, float speedKi
@@ -77,11 +89,15 @@ public:
 
     //TODO: Should not be getting from estimate here and from tracker in Winch
     //float getPosition(){ return pos_est; }
-    float getEncoderTurns(){ return enc_turns; }
-    long getEncoderTicks(){ return enc->read(); }
+    float getEncoderTurns(){ return encoder.turns; }
+    long getEncoderTicks(){ return encoder.ticks; }
     //float getSpeed(){ return spd_est; }
 
     bool isOn(){return stop_go == State::GO; }
+
+    // Encoding functions
+    void StopEncoder();
+    void StartEncoder();
 
 private:
     // Setup functions
@@ -102,8 +118,10 @@ private:
 
     State stop_go = State::STOP ; // Is it in stop mode or go mode
 
-    int encA, encB; /**< Pins for the magnetic encoder readings */
-    double enc_turns; // Encoder position, in revolutions. 1 rev = 1.0.
+    int encA, encB, encIDX; /**< Pins for the magnetic encoder readings */
+    EncoderState encoder = { 0, 0, 0, 0, false, false, 0.0, true };
+
+    //double enc_turns; // Encoder position, in revolutions. 1 rev = 1.0.
     //double enc_speed; // Encoder speed in revolutions/sec.
     //elapsedMicros encTimer;
 
@@ -126,5 +144,10 @@ private:
     float tension; // Stores the tension on the line. Updated in loop. Measured in no particular unit at the moment.
 };
 
+// Index Interrupt Functions
+static volatile bool idx_tick_23=false, idx_tick_24=false, idx_tick_26=false;
+static void isr23(){ idx_tick_23 = true; };
+static void isr24(){ idx_tick_24 = true; };
+static void isr26(){ idx_tick_26 = true; };
 
 #endif //RUBE_WINCHDRIVER_H

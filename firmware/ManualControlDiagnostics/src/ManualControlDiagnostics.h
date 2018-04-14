@@ -17,16 +17,16 @@
 #define KD 10.0
 
 // Winches
-//TODO Is this the right naming
-Winch O(0, ENC1A, ENC1B,
+#include <Winch.h>
+Winch A(0, ENC1A, ENC1B, ENC1_INT,
         IN1_0, IN2_0, PWM_0, 1, STBY_0,
         DOUT_A, SCK_A, SCALE1_OFFSET,
         KP, KI, KD);
-Winch Q(1, ENC2A, ENC2B,
+Winch B(1, ENC2A, ENC2B, ENC2_INT,
         IN1_1, IN2_1, PWM_1, 1, STBY_1,
         DOUT_B, SCK_B, SCALE2_OFFSET,
         KP, KI, KD);
-Winch P(2, ENC3A, ENC3B,
+Winch C(2, ENC3A, ENC3B, ENC3_INT,
         IN1_2, IN2_2, PWM_2, 1, STBY_2,
         DOUT_C, SCK_C, SCALE3_OFFSET,
         KP, KI, KD);

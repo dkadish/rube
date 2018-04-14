@@ -15,9 +15,9 @@
 // TODO Get Winch/WinchDriver to compile.
 // TODO Add states/modes
 
-Winch::Winch(int index, int encA, int encB, int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
+Winch::Winch(int index, int encA, int encB, int encIDX, int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
              int scale_dout, int scale_sck, long scale_offset, double Kp, double Ki, double Kd):
-        driver(encA, encB, motorIn1, motorIn2, motorPwm, motorOffset, motorStby,
+        driver(encA, encB, encIDX, motorIn1, motorIn2, motorPwm, motorOffset, motorStby,
                     scale_dout, scale_sck, scale_offset),
         pid_p{Kp, Ki, Kd},
         index(index)//, mm_ctrl(driver), tension_ctrl(driver), retension_ctrl(driver, tension_ctrl)
