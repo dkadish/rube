@@ -36,7 +36,7 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
     lineLengths.PR = params.PR;
     lineLengths.QR = params.QR;
 
-    // Set Postion of O, P
+    // Set Position of O, P
     O.z = mount_height;
     P.y = lineLengths.OP;
     P.z = mount_height;
@@ -78,20 +78,22 @@ void RobotPosition::CalibrateInitialPosition(RobotSetupParameters params) {
 //    sprintf(response, "R.z (down): %i.%i\n", (int)R.z, (int)(R.z*100.0));
 //    wifiResponse(response);
 //    R.z=mount_height-R.z;
+
+    INFO("Origins initialized as O(%i.%i,%i.%i,%i.%i), P(%i.%i,%i.%i,%i.%i), Q(%i.%i,%i.%i,%i.%i)",
+        FLOAT(O.x), FLOAT(O.y), FLOAT(O.z),
+         FLOAT(P.x), FLOAT(P.y), FLOAT(P.z),
+         FLOAT(Q.x), FLOAT(Q.y), FLOAT(Q.z)
+    )
 }
 
-// TODO Check these calculations
 void RobotPosition::CalculateLines(float x, float y, float z){
-    setpoint.x=x;
-    setpoint.y=y;
-    setpoint.z=z;
-    float d= P.x;
-    float i= Q.x;
-    float j= Q.y;
-    float h=mount_height;
-    setpoint_lengths.O = int(sqrt((setpoint.x*setpoint.x)+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h))));
-    setpoint_lengths.P = int(sqrt(((setpoint.x-d)*(setpoint.x-d))+(setpoint.y*setpoint.y)+((setpoint.z-h)*(setpoint.z-h)))) ;
-    setpoint_lengths.Q = int(sqrt(((setpoint.x-i)*(setpoint.x-i))+((setpoint.y-j)*(setpoint.y-j))+((setpoint.z-h)*(setpoint.z-h)))) ;
+    setpoint.x = x;
+    setpoint.y = y;
+    setpoint.z = z;
+
+    setpoint_lengths.O = sqrtf(powf(setpoint.x-O.x,2)+powf(setpoint.y-O.y,2)+powf(setpoint.z-O.z,2));
+    setpoint_lengths.P = sqrtf(powf(setpoint.x-P.x,2)+powf(setpoint.y-P.y,2)+powf(setpoint.z-P.z,2));
+    setpoint_lengths.Q = sqrtf(powf(setpoint.x-Q.x,2)+powf(setpoint.y-Q.y,2)+powf(setpoint.z-Q.z,2));
 }
 
 void RobotPosition::CalculateLines(Point3D point) {

@@ -61,6 +61,8 @@ void setup(){
 
     INFO("Staring Loop...");
 
+    INFO("TEST PRINT: %i.%i", FLOAT(123.4567));
+
 }
 
 void position_setup(){
@@ -155,17 +157,34 @@ void serial_loop(){
     }
 }
 
-void handleSerialInput(String serial_in){
-    if( serial_in[0] == 'S' ){
+void handleSerialInput(String serial_in) {
+    if (serial_in[0] == 'S') {
         msgSerial->println("Printing Sensors");
         printSensors();
-    } else if (serial_in[0] == 'C'){ // Configuration
-        if( serial_in[1] == 'P' ){
+    } else if (serial_in[0] == 'C') { // Configuration
+        if (serial_in[1] == 'P') {
             printConfig();
-        } else if( serial_in[1] == 'T' ){
+        } else if (serial_in[1] == 'T') {
             tareScales();
         }
-    }else if (serial_in[0] == 'D'){
+    } else if (serial_in[0] == 'R'){ // Robot functions
+        if (serial_in[1] == 'M') { // Move robot
+            String coords = serial_in.substring(2);
+            int xy = coords.indexOf(',');
+            int yz = coords.indexOf(',', xy + 1);
+            float x = coords.substring(0, xy).toFloat(),
+                    y = coords.substring(xy + 1, yz).toFloat(),
+                    z = coords.substring(yz + 1).toFloat();
+
+            INFO("Moving to: %i.%i, %i.%i, %i.%i", FLOAT(x), FLOAT(y), FLOAT(z))
+
+            moveRobot(x, y, z);
+        } else if (serial_in[1] == 'S') {
+            doStopAll();
+        } else if (serial_in[1] == 'T'){
+            doTensionAll();
+        }
+    } else if (serial_in[0] == 'D'){
         runDiagnostics();
     } else if (serial_in[0] == 'W'){
         wifiResponse("Performing Winch function...");
@@ -303,6 +322,9 @@ void printSensors(){
             msgSerial->print(", ");
     }
     msgSerial->println();
+    msgSerial->printf("The current motor levels are: %i, %i, %i.\n",
+        O.getSignal(),P.getSignal(),Q.getSignal()
+    );
 
     Point3D pos = position.getXYZ();
 //    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
@@ -380,8 +402,44 @@ void doSetWinchSignal(int winch_i, int signal){
     winches[winch_i]->doGo(signal);
 }
 
+void moveRobot(float x, float y, float z){
+    position.CalculateLines(x, y, z);
+
+    // Set targets and start
+    O.doGoTo(position.getTargetO());
+    P.doGoTo(position.getTargetP());
+    Q.doGoTo(position.getTargetQ());
+}
+
+
+
+void doTensionAll(){
+    msgSerial->println("Tensioning Winches.");
+
+    for(Winch * winch: winches){
+        if( !winch->isUnderTension() ){
+            msgSerial->printf("Winch %i not under tension.\n", winch->index);
+            winch->doRetension();
+        }
+    }
+
+    msgSerial->println("Performing retensioning.");
+
+    while(!(O.isUnderTension() && P.isUnderTension() && Q.isUnderTension()) ){
+        loop();
+    }
+
+    msgSerial->println("Winches tensioned.");
+}
+
+void doStopAll(){
+    for(Winch * winch: winches){
+        winch->doStop();
+    }
+}
+
 void doSetWinchPositionSetpoint(int winch_i, float setpoint){
-    winches[winch_i]->doGoTo(setpoint);//, 0.1);
+    winches[winch_i]->doGoTo(setpoint, 0.25);
 //    INFO("Error is %i.%i. Stopping.", (int)(winches[winch_i]->pidPos_ctrl->getError()), winches[winch_i]->pidPos_ctrl->getError());
 }
 

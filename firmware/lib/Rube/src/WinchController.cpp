@@ -37,10 +37,10 @@ void MinimumMotionController::loop() {
              * is <= the new position, it hasn't gone anywhere.
              */
             if (lastPosition <= winchPos && direction_positive) {
-                INFO("MM: Increasing level.");
+//                INFO("MM: Increasing level.");
                 level++;
             } else if (lastPosition >= winchPos && !direction_positive) { // Unless we are going negative
-                INFO("MM: Decreasing level.");
+//                INFO("MM: Decreasing level.");
                 level--;
             }
             lastPosition = winchPos;
@@ -84,6 +84,7 @@ void TensionMaintenanceController::loop() {
 
             // Check to see if this is the beginning of a lost tension event.
             if(lastLoopTension){
+                INFO("Stopped due to lack of tension.")
                 WARNING("Stopped due to lack of tension.")
                 lostTensionEvent = true;
             }

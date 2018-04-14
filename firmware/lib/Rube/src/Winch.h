@@ -80,7 +80,6 @@ public:
         pidPos_ctrl->setHoldDistance((double) stoppingError);
     }
 
-
     // Position Variables
 
     float startLength = 0.0;
@@ -101,8 +100,14 @@ public:
     // Motor
     int offset;
 
-    float getSpeed(){ driver.getSpeed(); }
-    int getSignal(){ driver.getSignal(); }
+    float getSpeed(){ return driver.getSpeed(); }
+    int getSignal(){
+        if( driver.isOn() ) {
+            return driver.getSignal();
+        } else {
+            return 0;
+        }
+    }
 
     //*** Driver access functions ***//
     // Scale

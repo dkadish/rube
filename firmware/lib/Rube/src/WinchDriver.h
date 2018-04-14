@@ -81,6 +81,8 @@ public:
     long getEncoderTicks(){ return enc->read(); }
     float getSpeed(){ return spd_est; }
 
+    bool isOn(){return stop_go == State::GO; }
+
 private:
     // Setup functions
     void motor_setup();

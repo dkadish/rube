@@ -74,6 +74,8 @@ void Winch::loop() {
     driver.loop();
 
     if( tension_ctrl->getErrorCondition() ){
+        INFO("Winch %i lost tension.", index)
+        WARNING("Winch %i lost tension.", index)
         for(Controller *controller: controllers){
             controller->end();
         }

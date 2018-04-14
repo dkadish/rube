@@ -12,7 +12,7 @@
 #include <Winch.h>
 #include <robot.h>
 
-#define KP 255.0
+#define KP 100.0
 #define KI 50.0
 #define KD 10.0
 
@@ -36,12 +36,12 @@ const int N_WINCHES = 3;
 // Robot
 RobotSetupParameters robotParams = {
     2.5,    /**< The height of the bottom of the mounts from the ground (m). */
-    4.7,     /**< The length of the line from O to P (m). */
-    4.884,   /**< The length of the line from P to Q (m). */
-    3.863,    /**< The length of the line from O to Q (m). */
-    2.38, /**< Length of the cable from O to robot (m). */
-    3.13, /**< Length of the cable from P to robot (m).*/
-    3.54 /**< Length of the cable from Q to robot (m). */
+    4.51,     /**< The length of the line from O to P (m). */
+    4.695,   /**< The length of the line from P to Q (m). */
+    3.8,    /**< The length of the line from O to Q (m). */
+    2.36, /**< Length of the cable from O to robot (m). */
+    3.16, /**< Length of the cable from P to robot (m).*/
+    3.55 /**< Length of the cable from Q to robot (m). */
 };
 
 RobotPosition position = RobotPosition();
@@ -65,6 +65,11 @@ void handleSerialInput(String serial_in);
 // Configuration
 void printConfig();
 void tareScales();
+
+// Robot Control functions
+void moveRobot(float x, float y, float z);
+void doTensionAll();
+void doStopAll();
 
 // Winch Manual Control Functions
 void doWinchStop(int winch_i);
