@@ -105,7 +105,7 @@ private:
     int encA, encB; /**< Pins for the magnetic encoder readings */
     double enc_turns; // Encoder position, in revolutions. 1 rev = 1.0.
     //double enc_speed; // Encoder speed in revolutions/sec.
-    elapsedMicros encTimer;
+    //elapsedMicros encTimer;
 
     // Scale Variables
     int dout, sck;

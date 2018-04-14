@@ -46,7 +46,7 @@ void WinchDriver::enc_setup() {
     // Set velocities to 0
     //spd_est = 0.0;
 
-    encTimer = 0;
+    //encTimer = 0;
 }
 
 void WinchDriver::scale_setup() {
@@ -81,7 +81,7 @@ void WinchDriver::motor_loop() {
 void WinchDriver::enc_loop() {
     // TODO Should this run faster than the control loop?
 
-    double dt = ((double) encTimer);
+    //double dt = ((double) encTimer);
 
     enc_turns = ((double)enc->read()) / TICKS_PER_REVOLUTION;
 
@@ -91,7 +91,14 @@ void WinchDriver::enc_loop() {
     spd_int += pos_est_err * spd_tracking_ki * dt / 1000000.0;
     spd_est = pos_est_err * spd_tracking_kp + spd_int;*/
 
-    encTimer = 0;
+    /*if(printTimer > 1000){
+        Serial.printf("Estimation %i > Pos: %i, PosErr: %i, SpdInt: %i, Spd: %i, encTimer: %i, pos_est_error: %i\n", index,
+                      (int)(pos_est), (int)(enc_turns - pos_est), (int)(spd_int),
+                      (int)(spd_est), (int) encTimer, (int)(pos_est_err)
+        );
+    }*/
+
+    //encTimer = 0;
 
 }
 
