@@ -144,10 +144,4 @@ private:
     float tension; // Stores the tension on the line. Updated in loop. Measured in no particular unit at the moment.
 };
 
-// Index Interrupt Functions
-static volatile bool idx_tick_23=false, idx_tick_24=false, idx_tick_26=false;
-static void isr23(){ idx_tick_23 = true; };
-static void isr24(){ idx_tick_24 = true; };
-static void isr26(){ idx_tick_26 = true; };
-
 #endif //RUBE_WINCHDRIVER_H

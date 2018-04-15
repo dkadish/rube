@@ -25,7 +25,7 @@
 
         #define ENC2A 34
         #define ENC2B 35
-        #define ENC2_INT 26
+        #define ENC2_INT 36
 
         #define ENC3A 11
         #define ENC3B 12

@@ -10,6 +10,12 @@
 #include <usb_serial.h>
 #include <Arduino.h>
 
+// Index Interrupt Functions
+volatile bool idx_tick_23=false, idx_tick_24=false, idx_tick_36=false;
+void isr23(){ idx_tick_23 = true; };
+void isr24(){ idx_tick_24 = true; };
+void isr36(){ idx_tick_36 = true; };
+
 WinchDriver::WinchDriver(int encA, int encB, int IDX,
                           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
                           int scale_dout, int scale_sck, long offset
@@ -39,19 +45,25 @@ void WinchDriver::motor_setup() {
 }
 
 void WinchDriver::enc_setup() {
+    INFO("Setting up encoder.")
     enc = new Encoder(encA, encB);
 
     enc->write(0);
 
+    pinMode(encIDX, INPUT_PULLUP);
+    INFO("Attaching interrupt to pin %i.", encIDX)
     switch(encIDX) {
         case 23:
-            attachInterrupt(digitalPinToInterrupt(encIDX), isr23, RISING);
+            attachInterrupt(digitalPinToInterrupt(23), isr23, RISING);
+            INFO("Attached interrupt to pin 23.")
             break;
         case 24:
-            attachInterrupt(digitalPinToInterrupt(encIDX), isr24, RISING);
+            attachInterrupt(digitalPinToInterrupt(24), isr24, RISING);
+            INFO("Attached interrupt to pin 24.")
             break;
-        case 26:
-            attachInterrupt(digitalPinToInterrupt(encIDX), isr26, RISING);
+        case 36:
+            attachInterrupt(digitalPinToInterrupt(36), isr36, RISING);
+            INFO("Attached interrupt to pin 36.")
             break;
     }
 
@@ -124,13 +136,22 @@ void WinchDriver::enc_loop() {
         // Check for index
         switch (encIDX){
             case 23:
-                encoder.index_tick = idx_tick_23;
+                if(idx_tick_23){
+                    encoder.index_tick = true;
+                    idx_tick_23 = false;
+                }
                 break;
             case 24:
-                encoder.index_tick = idx_tick_24;
+                if(idx_tick_24){
+                    encoder.index_tick = true;
+                    idx_tick_24 = false;
+                }
                 break;
-            case 26:
-                encoder.index_tick = idx_tick_26;
+            case 36:
+                if(idx_tick_36){
+                    encoder.index_tick = true;
+                    idx_tick_36 = false;
+                }
                 break;
         }
 
