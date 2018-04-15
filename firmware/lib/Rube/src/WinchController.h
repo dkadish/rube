@@ -73,6 +73,9 @@ public:
         INFO("Starting Tension Controller.");
         enabled = true;
         lastLoopTension = winchDriver.isUnderTension();
+        if(lastLoopTension){
+            winchDriver.StartEncoder();
+        }
     }
 
     /** Run at the end of each invocation of TensionController */

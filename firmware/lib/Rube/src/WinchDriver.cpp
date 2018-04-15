@@ -91,10 +91,12 @@ void WinchDriver::motor_loop() {
 }
 
 void WinchDriver::StopEncoder() {
+    INFO("Encoder is stopped at %i ticks.", encoder.ticks)
     encoder.active = false;
 }
 
 void WinchDriver::StartEncoder() {
+    INFO("Encoder is starting. Resetting encoder from %i to %i ticks.", enc->read(), encoder.ticks)
     encoder.active = true;
     encoder.index_sync = false;
 
@@ -102,7 +104,6 @@ void WinchDriver::StartEncoder() {
 }
 
 void WinchDriver::enc_loop() {
-    // TODO Should this run faster than the control loop?
 
     //double dt = ((double) encTimer);
 
@@ -113,6 +114,7 @@ void WinchDriver::enc_loop() {
         // Verify the number
         long change = ticks - encoder.ticks;
         if( change > TICKS_PER_REVOLUTION || change < -TICKS_PER_REVOLUTION ){
+            INFO("Jump in encoder detected. Ticks moved from %i to %i in one loop, a change of %i. Ignoring movement.", encoder.ticks, ticks, change);
             WARNING("Jump in encoder detected. Ticks moved from %i to %i in one loop, a change of %i. Ignoring movement.", encoder.ticks, ticks, change);
         } else {
             encoder.ticks_prev = encoder.ticks;
@@ -133,10 +135,12 @@ void WinchDriver::enc_loop() {
         }
 
         if( encoder.index_tick ){
+            INFO("Encoder index captured. Index %i.", encoder.index)
             if( encoder.index_sync ){
                 // Check number of ticks since last sync
                 long idx_change = encoder.index_prev_tick - encoder.ticks;
                 if( idx_change > TICKS_PER_REVOLUTION + 10 || idx_change < - TICKS_PER_REVOLUTION - 10 ){
+                    INFO("Jump in encoder detected by index. Ticks moved from %i to %i in one index, a change of %i. The count is off.", encoder.index_prev_tick, encoder.ticks, idx_change);
                     WARNING("Jump in encoder detected by index. Ticks moved from %i to %i in one index, a change of %i. The count is off.", encoder.index_prev_tick, encoder.ticks, idx_change);
                 } else {
                     encoder.index_prev_tick = encoder.ticks;
@@ -147,6 +151,8 @@ void WinchDriver::enc_loop() {
                     }
                 }
             } else {
+                INFO("Encoder index sync starting.")
+                encoder.index_sync = true;
                 encoder.index_prev_tick = encoder.ticks;
                 if(encoder.ticks > encoder.ticks_prev) {
                     encoder.index++;
