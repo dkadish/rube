@@ -10,6 +10,7 @@
 #include <Encoder.h>
 #include <HX711.h>
 #include <elapsedMillis.h>
+#include "rube_config.h"
 
 struct EncoderParams {
     int A;
@@ -34,12 +35,13 @@ struct ScaleParams {
 struct EncoderState {
     long ticks; /**< How many quadrature ticks from the start at zero */
     long ticks_prev; /**< Quadrature tick count at last loop (for direction/change) */
-    long index; /**< Index (counts revolutions) position. NOT FOR COUNTING TOTAL REVS */
-    long index_prev_tick; /**< Tick count at last Index */
-    bool index_tick; /**< An Index tick has been registered since last loop */
-    bool index_sync; /**< Whether the index is in sync. This is not true if the ticks has been started or adjusted since last index */
-    float turns; /**< Total turns, ticks * revoltions/tick */
+//    long index; /**< Index (counts revolutions) position. NOT FOR COUNTING TOTAL REVS */
+//    long index_prev_tick; /**< Tick count at last Index */
+//    bool index_tick; /**< An Index tick has been registered since last loop */
+//    bool index_sync; /**< Whether the index is in sync. This is not true if the ticks has been started or adjusted since last index */
+//    float turns; /**< Total turns, ticks * revolutions/tick */
     bool active;
+    int direction;
 };
 
 class WinchDriver {
@@ -89,7 +91,7 @@ public:
 
     //TODO: Should not be getting from estimate here and from tracker in Winch
     //float getPosition(){ return pos_est; }
-    float getEncoderTurns(){ return encoder.turns; }
+    float getEncoderTurns(){ return ((float)encoder.ticks)/((float)TICKS_PER_REVOLUTION); } //encoder.turns; }
     long getEncoderTicks(){ return encoder.ticks; }
     //float getSpeed(){ return spd_est; }
 
@@ -119,7 +121,7 @@ private:
     State stop_go = State::STOP ; // Is it in stop mode or go mode
 
     int encA, encB, encIDX; /**< Pins for the magnetic encoder readings */
-    EncoderState encoder = { 0, 0, 0, 0, false, false, 0.0, true };
+    EncoderState encoder = { 0, 0, /*0, 0, false, false, 0.0,*/ true, 0 };
 
     //double enc_turns; // Encoder position, in revolutions. 1 rev = 1.0.
     //double enc_speed; // Encoder speed in revolutions/sec.

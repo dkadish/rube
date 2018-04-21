@@ -21,7 +21,11 @@
 #endif
 
 #ifndef TICKS_PER_REVOLUTION
-    #define TICKS_PER_REVOLUTION 1024 // TODO is this right
+    #define TICKS_PER_REVOLUTION 1024
+#endif
+
+#ifndef MAX_TICKS_PER_LOOP
+    #define MAX_TICKS_PER_LOOP 25 // Closer to 4-5, but 25 should be safe ground
 #endif
 
 #if defined(__MK66FX1M0__) || defined(__MK64FX512__)

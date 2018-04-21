@@ -6,7 +6,7 @@
  */
 
 #include "ManualControlDiagnostics.h"
-#include "../.piolibdeps/RUBE/src/robot.h"
+#include <robot.h>
 #include <Winch.h>
 #include <elapsedMillis.h>
 
@@ -117,13 +117,39 @@ void loop(){
     robot_loop();
 
     serial_loop();
+
+    if(loopTimerAvg < 0){
+        loopTimerAvg = (float) loopTimer;
+    } else {
+        loopTimerAvg = loopTimerAvg * 0.99 + ((float)loopTimer) * 0.01;
+    }
+    loopTimer = 0;
 }
 
 void robot_loop(){
     position.update(O.getLength(), P.getLength(), Q.getLength());
 
+    bool errorConditions = false;
+    bool isRetensioning = false;
+
     for( int i=0; i < N_WINCHES; i++) {
         winches[i]->loop();
+
+        if(winches[i]->getErrorCondition()){
+            WARNING("Error condition detected in winch %i, tension at %i.%i.", i, FLOAT(winches[i]->getTension()))
+            errorConditions = true;
+        }
+
+        if(winches[i]->retension_ctrl->isEnabled()){
+            isRetensioning = true;
+        }
+    }
+
+    // Stop all winches if there is an error with one.
+    if(errorConditions && !isRetensioning   ){
+        for(Winch * winch: winches){
+            winch->doStop();
+        }
     }
 
     // IMU
@@ -325,6 +351,9 @@ void printSensors(){
     msgSerial->printf("The current motor levels are: %i, %i, %i.\n",
         O.getSignal(),P.getSignal(),Q.getSignal()
     );
+    msgSerial->printf("Looping on average every %i.%i microseconds.\n",
+                      FLOAT(loopTimerAvg)
+    );
 
     Point3D pos = position.getXYZ();
 //    msgSerial->printf("The current XYZ is : (%i.%i, %i.%i, %i.%i)\n",
@@ -405,10 +434,24 @@ void doSetWinchSignal(int winch_i, int signal){
 void moveRobot(float x, float y, float z){
     position.CalculateLines(x, y, z);
 
+    INFO("Moving to XYZ=(%i.%i,%i.%i,%i.%i), using line lengths (%i.%i,%i.%i,%i.%i)",
+         FLOAT(x),FLOAT(y),FLOAT(z),FLOAT(position.getTargetO()),FLOAT(position.getTargetP()),FLOAT(position.getTargetQ())
+    )
+
     // Set targets and start
-    O.doGoTo(position.getTargetO());
-    P.doGoTo(position.getTargetP());
-    Q.doGoTo(position.getTargetQ());
+    O.doGoTo(position.getTargetO(), 0.25);
+    P.doGoTo(position.getTargetP(), 0.25);
+    Q.doGoTo(position.getTargetQ(), 0.25);
+
+    for(Winch * winch: winches){
+        INFO("Winch at signal %i", winch->getSignal());
+    }
+
+    loop();
+
+    for(Winch * winch: winches){
+        INFO("Winch at signal %i", winch->getSignal());
+    }
 }
 
 
@@ -439,7 +482,17 @@ void doStopAll(){
 }
 
 void doSetWinchPositionSetpoint(int winch_i, float setpoint){
+
+    INFO("Winch at signal %i", winches[winch_i]->getSignal());
+
     winches[winch_i]->doGoTo(setpoint, 0.25);
+
+    INFO("Winch at signal %i", winches[winch_i]->getSignal());
+
+    loop();
+
+    INFO("Winch at signal %i", winches[winch_i]->getSignal());
+
 //    INFO("Error is %i.%i. Stopping.", (int)(winches[winch_i]->pidPos_ctrl->getError()), winches[winch_i]->pidPos_ctrl->getError());
 }
 

@@ -11,10 +11,10 @@
 #include <Arduino.h>
 
 // Index Interrupt Functions
-volatile bool idx_tick_23=false, idx_tick_24=false, idx_tick_36=false;
+/*volatile bool idx_tick_23=false, idx_tick_24=false, idx_tick_36=false;
 void isr23(){ idx_tick_23 = true; };
 void isr24(){ idx_tick_24 = true; };
-void isr36(){ idx_tick_36 = true; };
+void isr36(){ idx_tick_36 = true; };*/
 
 WinchDriver::WinchDriver(int encA, int encB, int IDX,
                           int motorIn1, int motorIn2, int motorPwm, int motorOffset, int motorStby,
@@ -50,7 +50,7 @@ void WinchDriver::enc_setup() {
 
     enc->write(0);
 
-    pinMode(encIDX, INPUT_PULLUP);
+    /*pinMode(encIDX, INPUT_PULLUP);
     INFO("Attaching interrupt to pin %i.", encIDX)
     switch(encIDX) {
         case 23:
@@ -65,7 +65,7 @@ void WinchDriver::enc_setup() {
             attachInterrupt(digitalPinToInterrupt(36), isr36, RISING);
             INFO("Attached interrupt to pin 36.")
             break;
-    }
+    }*/
 
     // Set velocities to 0
     //spd_est = 0.0;
@@ -110,7 +110,7 @@ void WinchDriver::StopEncoder() {
 void WinchDriver::StartEncoder() {
     INFO("Encoder is starting. Resetting encoder from %i to %i ticks.", enc->read(), encoder.ticks)
     encoder.active = true;
-    encoder.index_sync = false;
+    //encoder.index_sync = false;
 
     enc->write((int32_t) encoder.ticks);
 }
@@ -125,16 +125,29 @@ void WinchDriver::enc_loop() {
 
         // Verify the number
         long change = ticks - encoder.ticks;
-        if( change > TICKS_PER_REVOLUTION || change < -TICKS_PER_REVOLUTION ){
-            INFO("Jump in encoder detected. Ticks moved from %i to %i in one loop, a change of %i. Ignoring movement.", encoder.ticks, ticks, change);
+        if( change > MAX_TICKS_PER_LOOP || change < -MAX_TICKS_PER_LOOP ){
             WARNING("Jump in encoder detected. Ticks moved from %i to %i in one loop, a change of %i. Ignoring movement.", encoder.ticks, ticks, change);
+            // Ignore the recorded motion and reset the ticks to last count
+            enc->write(encoder.ticks); // + encoder.direction); // Also add one in the direction of motion
         } else {
+            // Update ticks
             encoder.ticks_prev = encoder.ticks;
             encoder.ticks = ticks;
+
+            // Update direction
+            int new_direction = 0;
+            if(encoder.ticks > encoder.ticks_prev){ new_direction = 1; }
+            else if(encoder.ticks < encoder.ticks_prev){ new_direction = -1; }
+
+            if(encoder.direction != new_direction && new_direction != 0){
+                INFO("Changed direction from %i to %i.", encoder.direction, new_direction)
+                encoder.direction = new_direction;
+            }
+
         }
 
         // Check for index
-        switch (encIDX){
+        /*switch (encIDX){
             case 23:
                 if(idx_tick_23){
                     encoder.index_tick = true;
@@ -157,15 +170,21 @@ void WinchDriver::enc_loop() {
 
         if( encoder.index_tick ){
             INFO("Encoder index captured. Index %i.", encoder.index)
-            if( encoder.index_sync ){
+            if( encoder.index_sync ){ // Check to see if index is in sync
                 // Check number of ticks since last sync
-                long idx_change = encoder.index_prev_tick - encoder.ticks;
-                if( idx_change > TICKS_PER_REVOLUTION + 10 || idx_change < - TICKS_PER_REVOLUTION - 10 ){
-                    INFO("Jump in encoder detected by index. Ticks moved from %i to %i in one index, a change of %i. The count is off.", encoder.index_prev_tick, encoder.ticks, idx_change);
+                long idx_change = encoder.ticks - encoder.index_prev_tick;
+                bool jump_up = idx_change > TICKS_PER_REVOLUTION + 10;
+                bool jump_down = idx_change < - TICKS_PER_REVOLUTION - 10;
+                bool jump
+                if(  ){ // FIXME Test for unreasonable jumps
                     WARNING("Jump in encoder detected by index. Ticks moved from %i to %i in one index, a change of %i. The count is off.", encoder.index_prev_tick, encoder.ticks, idx_change);
+                    if(idx_change > 0){
+                        // Reset the encoder count and ticks
+                    } else {
+                        // Reset the encoder count and ticks
+                    }
                 } else {
-                    encoder.index_prev_tick = encoder.ticks;
-                    if(encoder.ticks > encoder.ticks_prev) {
+                    if(encoder.direction > 0) {
                         encoder.index++;
                     } else {
                         encoder.index--;
@@ -175,7 +194,7 @@ void WinchDriver::enc_loop() {
                 INFO("Encoder index sync starting.")
                 encoder.index_sync = true;
                 encoder.index_prev_tick = encoder.ticks;
-                if(encoder.ticks > encoder.ticks_prev) {
+                if(encoder.direction > 0) {
                     encoder.index++;
                 } else {
                     encoder.index--;
@@ -185,7 +204,7 @@ void WinchDriver::enc_loop() {
             encoder.index_tick = false;
         }
 
-        encoder.turns = ((float)encoder.ticks) / ((float)TICKS_PER_REVOLUTION);
+        encoder.turns = ((float)encoder.ticks) / ((float)TICKS_PER_REVOLUTION);*/
     }
 
     // Estimate the velocity using a tracking loop (https://www.embeddedrelated.com/showarticle/530.php)

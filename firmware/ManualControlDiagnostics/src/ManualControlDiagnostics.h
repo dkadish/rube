@@ -12,21 +12,21 @@
 #include <Winch.h>
 #include <robot.h>
 
-#define KP 100.0
-#define KI 50.0
-#define KD 10.0
+#define KP 5.0
+#define KI 5.0
+#define KD 2.5
 
 // Winches
 #include <Winch.h>
-Winch A(0, ENC1A, ENC1B, ENC1_INT,
+Winch O(0, ENC1A, ENC1B, ENC1_INT,
         IN1_0, IN2_0, PWM_0, 1, STBY_0,
         DOUT_A, SCK_A, SCALE1_OFFSET,
         KP, KI, KD);
-Winch B(1, ENC2A, ENC2B, ENC2_INT,
+Winch Q(1, ENC2A, ENC2B, ENC2_INT,
         IN1_1, IN2_1, PWM_1, 1, STBY_1,
         DOUT_B, SCK_B, SCALE2_OFFSET,
         KP, KI, KD);
-Winch C(2, ENC3A, ENC3B, ENC3_INT,
+Winch P(2, ENC3A, ENC3B, ENC3_INT,
         IN1_2, IN2_2, PWM_2, 1, STBY_2,
         DOUT_C, SCK_C, SCALE3_OFFSET,
         KP, KI, KD);
@@ -45,6 +45,9 @@ RobotSetupParameters robotParams = {
 };
 
 RobotPosition position = RobotPosition();
+
+elapsedMicros loopTimer = 0;
+float loopTimerAvg = -1.0;
 
 // Communication
 Stream* cmdSerial=&Serial; // Commands sent to the robot

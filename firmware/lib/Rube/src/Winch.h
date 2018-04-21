@@ -29,10 +29,18 @@ class Winch {
 
     Point3D origin = {0.0,0.0,0.0};
 
+    /** Convert from line length (distance from line origin to robot) in metres
+     *  to the number of turns from the starting position.
+     *
+     * @param length
+     * @return
+     */
     float LengthToTurns(float length){
         INFO("Relocating to %i.%i, position %i.%i", FLOAT(length), FLOAT((length - startLength) / METRES_PER_REVOLUTION))
         return (length - startLength) / METRES_PER_REVOLUTION;
     }
+
+    bool errorCondition = false;
 
 public:
 
@@ -80,6 +88,8 @@ public:
         pidPos_ctrl->setHoldDistance((double) stoppingError);
     }
 
+    bool getErrorCondition();
+
     // Position Variables
 
     float startLength = 0.0;
@@ -100,7 +110,7 @@ public:
     // Motor
     int offset;
 
-    float getSpeed(){ return driver.getSpeed(); }
+    //float getSpeed(){ return driver.getSpeed(); }
     int getSignal(){
         if( driver.isOn() ) {
             return driver.getSignal();
@@ -108,9 +118,6 @@ public:
             return 0;
         }
     }
-
-    //float getSpeed(){ driver.getSpeed(); }
-    int getSignal(){ driver.getSignal(); }
 
     //*** Driver access functions ***//
     // Scale

@@ -74,8 +74,8 @@ void Winch::loop() {
     driver.loop();
 
     if( tension_ctrl->getErrorCondition() ){
-        INFO("Winch %i lost tension.", index)
         WARNING("Winch %i lost tension.", index)
+        errorCondition = true;
         for(Controller *controller: controllers){
             controller->end();
         }
@@ -86,6 +86,15 @@ void Winch::loop() {
         controllers[i]->loop();
     }
 
+}
+
+bool Winch::getErrorCondition() {
+    if( errorCondition ) {
+        errorCondition = false;
+        return true;
+    }
+
+    return false;
 }
 
 /** Stop all motion. Ends all controllers and engages tension control.
