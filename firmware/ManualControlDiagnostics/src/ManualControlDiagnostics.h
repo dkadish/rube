@@ -14,7 +14,7 @@
 
 #define KP 5.0
 #define KI 5.0
-#define KD 2.5
+#define KD 10.0
 
 // Winches
 #include <Winch.h>
@@ -86,5 +86,36 @@ void doRampDown(int winch_i, int ms);
 void _doRamp(int winch_i, int ms);
 
 int decimalDigits(float number);
+
+
+// Functions for full robot motion
+bool targets[3] = {false, false, false};
+int winch_priority[3] = {0,1,2};
+bool moveRobot_enabled = false;
+void moveRobot_loop();
+float finalTargets[3] = {0.0,0.0,0.0};
+
+
+int compareTension(Winch *&a, Winch *&b){
+    return (a->getTension() > b->getTension()) ? 1 : -1;
+}
+int max(float a, float b, float c){
+    if( a < b && a < c){
+        return 0;
+    } else if ( b < c ){
+        return 1;
+    }
+    return 2;
+}
+int min(float a, float b, float c) {
+    if (a > b && a > c) {
+        return 0;
+    } else if (b > c) {
+        return 1;
+    }
+    return 2;
+}
+int absMax(float a, float b, float c){ return max(abs(a), abs(b), abs(c)); }
+int absMin(float a, float b, float c){ return min(abs(a), abs(b), abs(c)); }
 
 #endif //MANUALCONTROLDIAGNOSTICS_MANUALCONTROLDIAGNOSTICS_H

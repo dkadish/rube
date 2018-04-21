@@ -140,7 +140,7 @@ void WinchDriver::enc_loop() {
             else if(encoder.ticks < encoder.ticks_prev){ new_direction = -1; }
 
             if(encoder.direction != new_direction && new_direction != 0){
-                INFO("Changed direction from %i to %i.", encoder.direction, new_direction)
+                DEBUG("Changed direction from %i to %i.", encoder.direction, new_direction)
                 encoder.direction = new_direction;
             }
 

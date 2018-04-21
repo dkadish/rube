@@ -6,6 +6,7 @@
  */
 
 #include "ManualControlDiagnostics.h"
+#include <Winch.h>
 #include <robot.h>
 #include <Winch.h>
 #include <elapsedMillis.h>
@@ -114,6 +115,8 @@ void position_setup(){
 }
 
 void loop(){
+    moveRobot_loop();
+
     robot_loop();
 
     serial_loop();
@@ -431,6 +434,65 @@ void doSetWinchSignal(int winch_i, int signal){
     winches[winch_i]->doGo(signal);
 }
 
+void moveRobot_loop(){
+    const float err = 0.25;
+
+    if(moveRobot_enabled){
+        if(targets[0] && targets[1] && targets[2]){
+            moveRobot_enabled = false;
+            INFO("Robot Motion Complete. Ending.")
+            return;
+        }
+
+        // Check to see if any have hit their targets
+        for(int i=0; i < N_WINCHES; i++){
+            float totalError = finalTargets[i] - winches[i]->getLength();
+
+            bool onTarget = !targets[i];
+            bool underError = abs(totalError) < (err * METRES_PER_REVOLUTION);
+            bool pidOff = !winches[i]->pidPos_ctrl->isEnabled();
+
+            if(onTarget && underError && pidOff){
+                /*Serial.print(onTarget); Serial.print(" "); Serial.print(underError); Serial.print(" "); Serial.print(pidOff);
+                Serial.print(" "); Serial.print(totalError); Serial.print(" "); Serial.println(err);*/
+                INFO("Winch %i has hit its target (target: %i.%i, error: %i.%i < err: %i.%i. Stopping.",
+                     i, FLOAT(finalTargets[i]), FLOAT(totalError), FLOAT(err * METRES_PER_REVOLUTION))
+                targets[i] = true;
+            }
+        }
+
+        int on_count = 0;
+        for(int i=0; i<N_WINCHES; i++){
+            int winch_i = winch_priority[i];
+
+            if(winches[winch_i]->getErrorCondition()){
+                WARNING("Winch %i is in an error condition. Retightening,", i)
+                winches[winch_i]->doRetension();
+            } else if (winches[winch_i]->retension_ctrl->isEnabled()) {
+                on_count++; // If retensioning, turn on
+            } else if (winches[winch_i]->pidPos_ctrl->isEnabled()) {
+                on_count++;
+            } else if(on_count < 1 && !targets[winch_i]) { // Less than two running and this should run
+                float targetLength;
+                float targetDistance = finalTargets[winch_i] - winches[winch_i]->getLength();
+
+                if( targetDistance > 1.0 ){
+                    targetLength = winches[winch_i]->getLength() + 1.0;
+                } else if ( targetDistance < -1.0 ){
+                    targetLength = winches[winch_i]->getLength() - 1.0;
+                } else {
+                    targetLength = targetDistance + winches[winch_i]->getLength();
+                }
+
+                INFO("Starting winch %i (priority %i), moving to length %i.%i", winch_i, i, FLOAT(targetLength))
+                winches[winch_i]->doGoTo(targetLength, err);
+                on_count++;
+            }
+        }
+
+    }
+}
+
 void moveRobot(float x, float y, float z){
     position.CalculateLines(x, y, z);
 
@@ -439,22 +501,30 @@ void moveRobot(float x, float y, float z){
     )
 
     // Set targets and start
-    O.doGoTo(position.getTargetO(), 0.25);
-    P.doGoTo(position.getTargetP(), 0.25);
-    Q.doGoTo(position.getTargetQ(), 0.25);
+//    O.doGoTo(position.getTargetO(), 0.25);
+//    P.doGoTo(position.getTargetP(), 0.25);
+//    Q.doGoTo(position.getTargetQ(), 0.25);
 
-    for(Winch * winch: winches){
-        INFO("Winch at signal %i", winch->getSignal());
+    for(int i=0; i<N_WINCHES; i++){
+        targets[i] = false;
     }
 
-    loop();
+    finalTargets[0] = position.getTargetO();
+    finalTargets[1] = position.getTargetP();
+    finalTargets[2] = position.getTargetQ();
 
-    for(Winch * winch: winches){
-        INFO("Winch at signal %i", winch->getSignal());
-    }
+    float targetDistances[3] = {position.getTargetO() - O.getLength(),
+            position.getTargetP() - P.getLength(),
+            position.getTargetQ() - Q.getLength()};
+
+    winch_priority[0] = max(targetDistances[0], targetDistances[1], targetDistances[2]);
+    winch_priority[1] = min(targetDistances[0], targetDistances[1], targetDistances[2]);
+    winch_priority[2] = 3-winch_priority[0]-winch_priority[1];
+
+    INFO("Starting robot move with priority: [%i,%i,%i]", winch_priority[0], winch_priority[1], winch_priority[2])
+
+    moveRobot_enabled = true;
 }
-
-
 
 void doTensionAll(){
     msgSerial->println("Tensioning Winches.");
@@ -476,6 +546,7 @@ void doTensionAll(){
 }
 
 void doStopAll(){
+    moveRobot_enabled = false;
     for(Winch * winch: winches){
         winch->doStop();
     }
@@ -528,7 +599,7 @@ void doTensionLine(int winch_i){
 void doRelaxLine(int winch_i){
     // Set the motor speed
     if(winches[winch_i]->isUnderTension()) {
-        winches[winch_i]->doGo(-100);
+        winches[winch_i]->doGo(-95);
     } else {
         msgSerial->printf("Winch %i is already relaxed. Position: %i.%i, Tension: %i.%i.\n", winch_i,
                 (int)(winches[winch_i]->getPosition()), decimalDigits(winches[winch_i]->getPosition()),
