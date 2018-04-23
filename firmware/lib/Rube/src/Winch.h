@@ -10,6 +10,7 @@
 #include "WinchController.h"
 #include "rube_config.h"
 
+#include <Arduino.h>
 #include <HX711.h>
 #include <Encoder.h>
 #include <elapsedMillis.h>
@@ -134,6 +135,51 @@ public:
     // Motor
     void doGo(){ driver.go(); };
     void doGo(int signal){ driver.go_signal(signal); };
+
+    String print(){
+        // Time
+        String winch_print = millis();
+        winch_print += ", ";
+
+        // Winch Info
+        winch_print += "Winch: ";
+        winch_print += index;
+        winch_print += ", ";
+
+        // Position/Encoding
+        winch_print += "P: ";
+        winch_print += getPosition();
+        winch_print += ", ";
+        winch_print += getLength();
+        winch_print += ", ";
+        winch_print += getEncoderTicks();
+        winch_print += ", ";
+        winch_print += driver.getEncoderTurns();
+
+        // Motor
+        winch_print += ", M: ";
+        winch_print += driver.isOn();
+        winch_print += ", ";
+        winch_print += getSignal();
+        winch_print += ", ";
+        winch_print += driver.getSignal();
+
+        // Scale
+        winch_print += ", S: ";
+        winch_print += getTension();
+        winch_print += ", ";
+        winch_print += isUnderTension();
+
+        // PID
+        winch_print += ", D: ";
+        winch_print += pidPos_ctrl->isEnabled();
+        winch_print += ", ";
+        winch_print += pidPos_ctrl->getTarget();
+        winch_print += ", ";
+        winch_print += pidPos_ctrl->getError();
+
+        return winch_print;
+    }
 
 };
 

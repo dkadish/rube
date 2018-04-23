@@ -39,9 +39,12 @@ RobotSetupParameters robotParams = {
     4.51,     /**< The length of the line from O to P (m). */
     4.695,   /**< The length of the line from P to Q (m). */
     3.8,    /**< The length of the line from O to Q (m). */
-    2.36, /**< Length of the cable from O to robot (m). */
-    3.16, /**< Length of the cable from P to robot (m).*/
-    3.55 /**< Length of the cable from Q to robot (m). */
+//    2.36, /**< Length of the cable from O to robot (m). */
+//    3.16, /**< Length of the cable from P to robot (m).*/
+//    3.55 /**< Length of the cable from Q to robot (m). */
+    3.41,
+    4.10,
+    2.83
 };
 
 RobotPosition position = RobotPosition();
@@ -50,9 +53,9 @@ elapsedMicros loopTimer = 0;
 float loopTimerAvg = -1.0;
 
 // Communication
-Stream* cmdSerial=&Serial; // Commands sent to the robot
+Stream* cmdSerial=&Serial1; // Commands sent to the robot
 Stream* msgSerial=&Serial; // Messages from the robot
-Stream* datSerial=&Serial; // Data logs from the robot
+Stream* datSerial=&Serial1; // Data logs from the robot
 Stream* logSerial=&Serial; // Log messages from the
 
 String command = ""; // Commands received over serial
@@ -84,9 +87,18 @@ void doRelaxLine(int winch_i);
 void doRampUp(int winch_i, int ms);
 void doRampDown(int winch_i, int ms);
 void _doRamp(int winch_i, int ms);
+void printData(int i);
 
 int decimalDigits(float number);
 
+elapsedMicros dataTimer = 0;
+int print_i = 0;
+
+//IMU
+float ax, ay, az;
+float gx, gy, gz;
+float mx, my, mz;
+float temperature, altitude;
 
 // Functions for full robot motion
 bool targets[3] = {false, false, false};

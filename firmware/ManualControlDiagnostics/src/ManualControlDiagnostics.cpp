@@ -34,7 +34,7 @@ void setup(){
 
     // Serial connection
     Serial.begin(9600);
-    Serial1.begin(9600);
+    Serial1.begin(115200);
     delay(2000);
     INFO("Finished initializing Serial");
 
@@ -121,6 +121,16 @@ void loop(){
 
     serial_loop();
 
+    if(dataTimer > 100000L/4){//33333){ // Corresponds to 30 Hz
+        elapsedMicros printTime = 0;
+        printData(print_i);
+//        msgSerial->printf("Printing takes %i microseconds (%i ms)\n", (int)printTime, (int)(printTime/1000));
+        dataTimer = 0;
+
+        print_i++;
+        if( print_i > 3 ){ print_i = 0; }
+    }
+
     if(loopTimerAvg < 0){
         loopTimerAvg = (float) loopTimer;
     } else {
@@ -156,11 +166,6 @@ void robot_loop(){
     }
 
     // IMU
-    float ax, ay, az;
-    float gx, gy, gz;
-    float mx, my, mz;
-    float altitude;
-
     if (imu.available()) {
         // Read the motion sensors
         imu.readMotionSensor(ax, ay, az, gx, gy, gz, mx, my, mz, altitude);
@@ -190,6 +195,11 @@ void handleSerialInput(String serial_in) {
     if (serial_in[0] == 'S') {
         msgSerial->println("Printing Sensors");
         printSensors();
+    } else if (serial_in[0] == 'P') { // Print log messages
+        printData(0);
+        printData(1);
+        printData(2);
+        printData(3);
     } else if (serial_in[0] == 'C') { // Configuration
         if (serial_in[1] == 'P') {
             printConfig();
@@ -388,39 +398,22 @@ void printSensors(){
     }
     msgSerial->println();
 
-    // IMU
-    float ax, ay, az;
-    float gx, gy, gz;
-    float mx, my, mz;
-    float roll, pitch, heading;
-    float temperature;
-    float altitude;
-    //long altint;
-
-    if (imu.available()) {
-        // Read the motion sensors
-        imu.readMotionSensor(ax, ay, az, gx, gy, gz, mx, my, mz);
-        imu.readAltitudeAndTemperature(altitude, temperature);
-        //imu.readMotionSensor(altint); //TODO Why is this wrong?
-
-        // Update the SensorFusion filter
-        imu_filter.update(gx, gy, gz, ax, ay, az, mx, my, mz);
-    }
+//        imu.readAltitudeAndTemperature(altitude, temperature);
 
     // print the heading, pitch and roll
-    roll = imu_filter.getRoll();
-    pitch = imu_filter.getPitch();
-    heading = imu_filter.getYaw();
+    float roll = imu_filter.getRoll();
+    float pitch = imu_filter.getPitch();
+    float heading = imu_filter.getYaw();
     msgSerial->print("Orientation: ");
     msgSerial->print(heading);
     msgSerial->print(" ");
     msgSerial->print(pitch);
     msgSerial->print(" ");
     msgSerial->print(roll);
-    msgSerial->print(", Temperature:  ");
+    /*msgSerial->print(", Temperature:  ");
     msgSerial->print(temperature);
     msgSerial->print(", Altitude:  ");
-    msgSerial->println(altitude);
+    msgSerial->println(altitude);*/
     //msgSerial->print(", Altitude:  ");
     //msgSerial->println(*altint);
 }
@@ -659,6 +652,62 @@ void _doRamp(int winch_i, int ms){
     );
     wifiResponse(response);
 
+}
+
+void printData(int i){
+    elapsedMicros printTime = 0;
+
+    switch(i){
+        case 0:
+        case 1:
+        case 2:
+            datSerial->println(winches[i]->print());
+//            msgSerial->printf("Printing one winch takes %i microseconds (%i ms)\n", (int)printTime, (int)(printTime/1000));
+            break;
+        case 3:
+            // Robot
+            String robotLogs = millis();
+            robotLogs += ", ";
+            robotLogs += loopTimerAvg;
+
+            // Position
+            Point3D pos = position.getXYZ();
+            robotLogs += ", P: ";
+            robotLogs += pos.x;
+            robotLogs += ", ";
+            robotLogs += pos.y;
+            robotLogs += ", ";
+            robotLogs += pos.z;
+
+            // IMU
+            float roll, pitch, heading;
+
+            // print the heading, pitch and roll
+            roll = imu_filter.getRoll();
+            pitch = imu_filter.getPitch();
+            heading = imu_filter.getYaw();
+
+            robotLogs += ", I: ";
+            robotLogs += ax; robotLogs += ", ";
+            robotLogs += ay; robotLogs += ", ";
+            robotLogs += az; robotLogs += ", ";
+            robotLogs += gx; robotLogs += ", ";
+            robotLogs += gy; robotLogs += ", ";
+            robotLogs += gz; robotLogs += ", ";
+            robotLogs += mx; robotLogs += ", ";
+            robotLogs += my; robotLogs += ", ";
+            robotLogs += mz; robotLogs += ", ";
+            robotLogs += altitude; robotLogs += ", ";
+            robotLogs += temperature; robotLogs += ", ";
+            robotLogs += heading; robotLogs += ", ";
+            robotLogs += pitch; robotLogs += ", ";
+            robotLogs += roll; robotLogs += ", ";
+
+            datSerial->println(robotLogs);
+//            msgSerial->printf("Printing robot takes %i microseconds (%i ms)\n", (int)printTime, (int)(printTime/1000));
+            break;
+    }
+    dataTimer = 0;
 }
 
 int decimalDigits(float number){
