@@ -84,7 +84,6 @@ void TensionMaintenanceController::loop() {
 
             // Check to see if this is the beginning of a lost tension event.
             if(lastLoopTension){
-                INFO("Stopped due to lack of tension.")
                 WARNING("Stopped due to lack of tension.")
                 lostTensionEvent = true;
             }
@@ -121,9 +120,13 @@ void PIDPositionController::setup(){
 void PIDPositionController::loop(){
 
     in = (double) winchDriver.getEncoderTurns();
-    position->Compute();
+    bool calc = position->Compute();
 
-    if(enabled){
+    if(enabled && calc){ // && calc?
+        /*if(!calc){
+            WARNING("No Calculation performed!!!")
+        }*/
+
 //        INFO("Setting signal to %i, given current position of %i", (int)(out), (int)(in));
         winchDriver.setSignal((int)out);
 
@@ -137,7 +140,10 @@ void PIDPositionController::loop(){
 
 void PIDPositionController::start() {
     enabled = true;
+    out = 0;
     position->SetMode(AUTOMATIC);
+    position->Compute();
+    out = 0;
 
     // Turn on the motors
     winchDriver.go();
@@ -145,6 +151,8 @@ void PIDPositionController::start() {
 
 void PIDPositionController::end() {
     enabled = false;
+    // So that output will be zero next time it is turned on
+    setTarget(winchDriver.getEncoderTurns());
     position->SetMode(MANUAL);
     winchDriver.stop();
 
